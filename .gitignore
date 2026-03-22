@@ -1,0 +1,6 @@
+# Supabase config (contains API keys)
+config.js
+js/config.js
+
+# Dependencies
+node_modules/
