@@ -18,7 +18,7 @@ const revealObserver = new IntersectionObserver(
       }
     });
   },
-  { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+  { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
 );
 revealEls.forEach((el) => revealObserver.observe(el));
 
@@ -32,6 +32,7 @@ const restartBtn = document.getElementById('eligibility-restart');
 const eligibilityResultInput = document.getElementById('eligibilityResult');
 const eligibilityStart = document.getElementById('eligibility-start');
 const eligibilityStartBtn = document.getElementById('eligibility-start-btn');
+const eligibilityBackBtn = document.getElementById('eligibility-back-btn');
 
 let currentStep = 1;
 let eligibilityAnswers = [];
@@ -39,21 +40,40 @@ const progressBar = document.getElementById('eligibility-progress');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 
+function updateEligibilityBackVisibility() {
+  const inQuestions = questionsContainer && !questionsContainer.classList.contains('hidden');
+  const show = Boolean(inQuestions && currentStep > 1);
+  eligibilityBackBtn?.classList.toggle('hidden', !show);
+}
+
 function showQuestion(step) {
+  currentStep = step;
   questions.forEach((q) => q.classList.add('hidden'));
   const question = document.querySelector(`.eligibility-question[data-step="${step}"]`);
   if (question) question.classList.remove('hidden');
+
+  questions.forEach((q) => {
+    q.querySelectorAll('.option-btn').forEach((b) => b.classList.remove('selected'));
+  });
+  const activeQ = document.querySelector(`.eligibility-question[data-step="${step}"]`);
+  const saved = eligibilityAnswers[step - 1];
+  if (saved && activeQ) {
+    activeQ.querySelector(`.option-btn[data-value="${saved}"]`)?.classList.add('selected');
+  }
+
   if (progressBar && progressFill && progressText) {
     progressBar.classList.remove('hidden');
     progressFill.style.width = `${(step / 5) * 100}%`;
     progressText.textContent = `Question ${step} of 5`;
   }
+  updateEligibilityBackVisibility();
 }
 
 function showResult(eligible) {
   questionsContainer.classList.add('hidden');
   if (progressBar) progressBar.classList.add('hidden');
   if (eligibilityStart) eligibilityStart.classList.add('hidden');
+  eligibilityBackBtn?.classList.add('hidden');
   resultContainer.classList.remove('hidden');
   if (eligible) {
     resultSuccess.classList.remove('hidden');
@@ -66,6 +86,12 @@ function showResult(eligible) {
   }
 }
 
+function goBack() {
+  if (currentStep <= 1) return;
+  eligibilityAnswers = eligibilityAnswers.slice(0, currentStep - 2);
+  showQuestion(currentStep - 1);
+}
+
 function restartChecker() {
   currentStep = 1;
   eligibilityAnswers = [];
@@ -74,6 +100,7 @@ function restartChecker() {
   resultSuccess.classList.add('hidden');
   resultFail.classList.add('hidden');
   if (progressBar) progressBar.classList.add('hidden');
+  eligibilityBackBtn?.classList.add('hidden');
   if (eligibilityStart) {
     eligibilityStart.classList.remove('hidden');
     questionsContainer.classList.add('hidden');
@@ -98,47 +125,96 @@ questions.forEach((questionEl) => {
   questionEl.querySelectorAll('.option-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const value = btn.dataset.value;
-      eligibilityAnswers.push(value);
+      const step = parseInt(questionEl.dataset.step, 10);
+
+      eligibilityAnswers[step - 1] = value;
+      questionEl.querySelectorAll('.option-btn').forEach((b) => b.classList.remove('selected'));
       btn.classList.add('selected');
 
-      if (value === 'no' && (currentStep === 1 || currentStep === 2 || currentStep === 3)) {
+      if (value === 'no' && (step === 1 || step === 2 || step === 3)) {
         showResult(false);
         return;
       }
-      if (currentStep === 4 && value === 'no') {
+      if (step === 4 && value === 'no') {
         showResult(false);
         return;
       }
-      if (currentStep === 5) {
+      if (step === 5) {
         showResult(value === 'yes');
         return;
       }
 
-      currentStep++;
-      showQuestion(currentStep);
+      showQuestion(step + 1);
     });
   });
 });
 
+eligibilityBackBtn?.addEventListener('click', goBack);
+
 restartBtn?.addEventListener('click', restartChecker);
 
-// Mobile nav toggle
+// Mobile nav toggle + focus trap + Escape
 const navToggle = document.querySelector('.nav-toggle');
 const nav = document.querySelector('.nav');
 
+function getNavFocusables() {
+  const list = [];
+  if (navToggle) list.push(navToggle);
+  nav?.querySelectorAll('a').forEach((a) => list.push(a));
+  return list;
+}
+
+function isNavOpen() {
+  return nav?.classList.contains('nav-open');
+}
+
 navToggle?.addEventListener('click', () => {
   const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-  navToggle.setAttribute('aria-expanded', !expanded);
+  navToggle.setAttribute('aria-expanded', String(!expanded));
   nav?.classList.toggle('nav-open');
+  if (!expanded) {
+    requestAnimationFrame(() => nav?.querySelector('a')?.focus());
+  }
 });
 
-// Close mobile nav when clicking a link
 nav?.querySelectorAll('a').forEach((link) => {
   link.addEventListener('click', () => {
     nav.classList.remove('nav-open');
     navToggle?.setAttribute('aria-expanded', 'false');
   });
 });
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && isNavOpen()) {
+    nav?.classList.remove('nav-open');
+    navToggle?.setAttribute('aria-expanded', 'false');
+    navToggle?.focus();
+    return;
+  }
+
+  if (e.key !== 'Tab' || !isNavOpen()) return;
+
+  const focusables = getNavFocusables();
+  if (focusables.length === 0) return;
+
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
+
+function focusFormMessage(el) {
+  if (!el) return;
+  el.classList.remove('hidden');
+  el.setAttribute('tabindex', '-1');
+  el.focus({ preventScroll: false });
+}
 
 // Application form
 const form = document.getElementById('application-form');
@@ -176,9 +252,11 @@ form?.addEventListener('submit', async (e) => {
     formMessage.textContent = 'Thank you! Your application has been received. We\'ll be in touch soon.';
     form.reset();
     eligibilityResultInput.value = '';
+    focusFormMessage(formMessage);
   } else {
     formMessage.classList.add('error');
     formMessage.textContent = result.error || 'Something went wrong. Please try again or contact us.';
+    focusFormMessage(formMessage);
   }
 });
 
@@ -211,8 +289,10 @@ callbackForm?.addEventListener('submit', async (e) => {
     callbackMessage.classList.add('success');
     callbackMessage.textContent = 'Thank you! We\'ll call you back soon.';
     callbackForm.reset();
+    focusFormMessage(callbackMessage);
   } else {
     callbackMessage.classList.add('error');
     callbackMessage.textContent = result.error || 'Something went wrong. Please try again or call us.';
+    focusFormMessage(callbackMessage);
   }
 });

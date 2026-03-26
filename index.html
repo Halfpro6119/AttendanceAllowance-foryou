@@ -2,9 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>document.documentElement.classList.add('js');</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Attendance Allowance for You | Get the Benefits You Deserve</title>
   <meta name="description" content="Certified healthcare professionals help you claim Attendance Allowance. No upfront payment - only pay when you get it. Over 99% success rate.">
+  <meta name="theme-color" content="#5cb87a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Attendance Allowance for You | Get the Benefits You Deserve">
+  <meta property="og:description" content="Certified healthcare professionals help you claim Attendance Allowance. No upfront payment - only pay when you get it.">
+  <meta property="og:url" content="https://www.attendanceallowanceforyou.co.uk/">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:site_name" content="Attendance Allowance for You">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Attendance Allowance for You">
+  <meta name="twitter:description" content="Certified healthcare professionals help you claim Attendance Allowance. No upfront payment - only pay when you get it.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -41,7 +53,10 @@
 
   <header class="header">
     <div class="container">
-      <h1 class="logo">Attendance Allowance for You</h1>
+      <a href="#hero" class="logo" aria-label="Attendance Allowance for You, home">
+        <span class="logo-full">Attendance Allowance for You</span>
+        <span class="logo-short" aria-hidden="true">AA for You</span>
+      </a>
       <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="main-nav">
         <span class="nav-toggle-bar"></span>
         <span class="nav-toggle-bar"></span>
@@ -68,13 +83,15 @@
         <svg viewBox="0 0 80 100" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M40 10 L40 90 M25 30 Q40 20 55 30 M25 50 Q40 40 55 50 M25 70 Q40 60 55 70"/></svg>
       </div>
       <div class="container">
-        <h2 class="hero-title">Here to make claiming easier</h2>
+        <h1 class="hero-title">Here to make claiming easier</h1>
         <p class="hero-benefit">Up to £5,741 per year for people over 66</p>
         <p class="hero-subtitle">We help you navigate and unlock the Attendance Allowance benefits available to people over 66.</p>
         <div class="hero-ctas">
           <a href="#eligibility" class="btn btn-primary btn-hero-primary">Check eligibility</a>
-          <a href="tel:08001234567" class="btn btn-secondary">Call us</a>
-          <a href="#callback" class="btn btn-outline">Request call-back</a>
+          <div class="hero-ctas-secondary">
+            <a href="tel:+448001234567" class="btn btn-secondary">Call <span class="nowrap">0800 123 4567</span></a>
+            <a href="#callback" class="btn btn-outline">Request call-back</a>
+          </div>
         </div>
       </div>
     </section>
@@ -110,7 +127,7 @@
             <p>Registered clinicians who understand care needs.</p>
           </div>
           <div class="usp-card reveal reveal-delay-3">
-            <span class="usp-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><text x="12" y="18" text-anchor="middle" font-size="20" font-weight="700" fill="currentColor" stroke="none" font-family="system-ui, -apple-system, sans-serif">£</text></svg></span>
+            <span class="usp-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><text x="12" y="18" text-anchor="middle" font-size="20" font-weight="700" fill="currentColor" stroke="none" font-family="system-ui, -apple-system, sans-serif">£</text></svg></span>
             <h3>No upfront payment</h3>
             <p>Pay only when you receive your benefit. Fee usually covered by your first backdated payment.</p>
           </div>
@@ -160,6 +177,7 @@
           </div>
         </div>
         <p class="stats-cta">No upfront charges. One-time fee only if you're successful. Our fee is usually covered by your first backdated payment.</p>
+        <p class="stats-disclaimer">Statistical figures are illustrative and based on our experience; past performance is not a guarantee of future outcomes. Individual results vary.</p>
         <a href="#eligibility" class="btn btn-primary">Free eligibility check</a>
       </div>
     </section>
@@ -282,13 +300,13 @@
         <p class="section-intro">Answer 5 quick questions. Takes a minute.</p>
         <div class="eligibility-checker">
           <div id="eligibility-start" class="eligibility-start">
-            <p class="eligibility-start-text">5 quick questions. Takes a minute.</p>
             <button type="button" id="eligibility-start-btn" class="btn btn-primary btn-lg">See if you're eligible</button>
           </div>
           <div id="eligibility-progress" class="eligibility-progress hidden">
             <div class="progress-bar"><span id="progress-fill" class="progress-fill"></span></div>
             <span id="progress-text" class="progress-text">Question 1 of 5</span>
           </div>
+          <button type="button" id="eligibility-back-btn" class="btn btn-outline btn-sm eligibility-back hidden">Back</button>
           <div id="eligibility-questions" class="eligibility-questions hidden">
             <div class="eligibility-question" data-step="1">
               <p>Are you 66 years of age or over?</p>
@@ -375,26 +393,26 @@
             <legend>Contact details</legend>
           <div class="form-row">
             <label for="fullName">Full name *</label>
-            <input type="text" id="fullName" name="fullName" required>
+            <input type="text" id="fullName" name="fullName" required autocomplete="name">
           </div>
           <div class="form-row">
             <label for="email">Email *</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" required autocomplete="email">
           </div>
           <div class="form-row">
             <label for="phone">Phone</label>
-            <input type="tel" id="phone" name="phone">
+            <input type="tel" id="phone" name="phone" autocomplete="tel">
           </div>
           </fieldset>
           <fieldset class="form-group">
             <legend>Application details</legend>
             <div class="form-row">
             <label for="address">Address</label>
-            <textarea id="address" name="address" rows="2"></textarea>
+            <textarea id="address" name="address" rows="2" autocomplete="street-address"></textarea>
           </div>
           <div class="form-row">
             <label for="dateOfBirth">Date of birth</label>
-            <input type="date" id="dateOfBirth" name="dateOfBirth">
+            <input type="date" id="dateOfBirth" name="dateOfBirth" autocomplete="bday">
           </div>
           <div class="form-row">
             <label for="careNeedsDescription">Brief description of care needs</label>
@@ -412,7 +430,7 @@
           </fieldset>
           <p class="form-note">We'll be in touch within 1–2 working days.</p>
           <input type="hidden" id="eligibilityResult" name="eligibilityResult" value="">
-          <div id="form-message" class="form-message hidden"></div>
+          <div id="form-message" class="form-message hidden" tabindex="-1" role="status" aria-live="polite"></div>
           <button type="submit" class="btn btn-primary btn-submit">Submit Application</button>
         </form>
       </div>
@@ -423,22 +441,30 @@
       <div class="container">
         <h2 class="section-title">Customer feedback</h2>
         <div class="testimonials-grid">
-          <div class="testimonial-card testimonial-featured">
-            <p class="testimonial-text">"My first application for Dad's Attendance Allowance was rejected after months. Then I found this service. After a short call with me and my dad, the form was completed, endorsed and submitted. Our clinician identified care needs I'd overlooked. Dad now receives the extra funds. Professional and pain-free."</p>
-            <p class="testimonial-author">Mark, London</p>
-          </div>
-          <div class="testimonial-card">
-            <p class="testimonial-text">"Professional, stress-free service. They handled everything and we got the benefit within weeks. Highly recommend."</p>
-            <p class="testimonial-author">Margaret, Yorkshire</p>
-          </div>
-          <div class="testimonial-card">
-            <p class="testimonial-text">"Brilliant service from start to finish. The clinicians really understood Mum's needs and explained everything clearly. We didn't pay a penny until she received her first payment."</p>
-            <p class="testimonial-author">Susan, Birmingham</p>
-          </div>
-          <div class="testimonial-card">
-            <p class="testimonial-text">"I was nervous about the process but the team made it so straightforward. They took care of all the paperwork and my application was approved first time. The backdated payment more than covered the fee."</p>
-            <p class="testimonial-author">Robert, Manchester</p>
-          </div>
+          <figure class="testimonial-card testimonial-featured">
+            <blockquote class="testimonial-quote">
+              <p>My first application for Dad's Attendance Allowance was rejected after months. Then I found this service. After a short call with me and my dad, the form was completed, endorsed and submitted. Our clinician identified care needs I'd overlooked. Dad now receives the extra funds. Professional and pain-free.</p>
+            </blockquote>
+            <figcaption class="testimonial-author">Mark, London</figcaption>
+          </figure>
+          <figure class="testimonial-card">
+            <blockquote class="testimonial-quote">
+              <p>Professional, stress-free service. They handled everything and we got the benefit within weeks. Highly recommend.</p>
+            </blockquote>
+            <figcaption class="testimonial-author">Margaret, Yorkshire</figcaption>
+          </figure>
+          <figure class="testimonial-card">
+            <blockquote class="testimonial-quote">
+              <p>Brilliant service from start to finish. The clinicians really understood Mum's needs and explained everything clearly. We didn't pay a penny until she received her first payment.</p>
+            </blockquote>
+            <figcaption class="testimonial-author">Susan, Birmingham</figcaption>
+          </figure>
+          <figure class="testimonial-card">
+            <blockquote class="testimonial-quote">
+              <p>I was nervous about the process but the team made it so straightforward. They took care of all the paperwork and my application was approved first time. The backdated payment more than covered the fee.</p>
+            </blockquote>
+            <figcaption class="testimonial-author">Robert, Manchester</figcaption>
+          </figure>
         </div>
       </div>
     </section>
@@ -466,6 +492,7 @@
             <li><strong>Lower:</strong> £320.23/month</li>
             <li><strong>Higher:</strong> £478.40/month</li>
           </ul>
+          <p class="about-source">Rates and rules are set by the Department for Work and Pensions (DWP). <a href="https://www.gov.uk/attendance-allowance" rel="noopener noreferrer">See official guidance on GOV.UK</a>.</p>
           <p>In Scotland: Pension Age Disability Payment (PADP).</p>
           <a href="#eligibility" class="btn btn-secondary">Check eligibility</a>
         </div>
@@ -480,17 +507,17 @@
         <form id="callback-form" class="callback-form">
           <div class="form-row">
             <label for="callbackName">Name *</label>
-            <input type="text" id="callbackName" name="callbackName" required>
+            <input type="text" id="callbackName" name="callbackName" required autocomplete="name">
           </div>
           <div class="form-row">
             <label for="callbackPhone">Phone *</label>
-            <input type="tel" id="callbackPhone" name="callbackPhone" required>
+            <input type="tel" id="callbackPhone" name="callbackPhone" required autocomplete="tel">
           </div>
           <div class="form-row">
             <label for="callbackEmail">Email *</label>
-            <input type="email" id="callbackEmail" name="callbackEmail" required>
+            <input type="email" id="callbackEmail" name="callbackEmail" required autocomplete="email">
           </div>
-          <div id="callback-message" class="form-message hidden"></div>
+          <div id="callback-message" class="form-message hidden" tabindex="-1" role="status" aria-live="polite"></div>
           <button type="submit" class="btn btn-primary btn-submit">Request call-back</button>
         </form>
       </div>
@@ -502,9 +529,9 @@
         <h2 class="section-title">Contact us</h2>
         <p class="trust-line">Run by registered healthcare clinicians</p>
         <div class="contact-buttons">
-          <a href="tel:08001234567" class="btn btn-primary btn-contact" aria-label="Call us">
+          <a href="tel:+448001234567" class="btn btn-primary btn-contact" aria-label="Call us on 0800 123 4567">
             <span class="btn-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-            Call Us
+            <span class="nowrap">0800 123 4567</span>
           </a>
           <a href="mailto:info@attendanceallowanceforyou.co.uk" class="btn btn-secondary btn-contact" aria-label="Email us">
             <span class="btn-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
@@ -512,8 +539,25 @@
           </a>
         </div>
         <p class="office-hours">Office hours: Monday &ndash; Friday, 9AM &ndash; 5PM</p>
-        <div class="social-placeholder">
-          <p>Follow us on social media (coming soon)</p>
+      </div>
+    </section>
+
+    <section id="privacy" class="legal-section section section-alt reveal" aria-labelledby="privacy-heading">
+      <div class="container">
+        <h2 id="privacy-heading" class="section-title">Privacy policy</h2>
+        <div class="legal-content">
+          <p>This policy explains how we collect and use personal information when you use this website or our services. Replace this summary with your full privacy policy before launch, including lawful basis for processing, retention, and data subject rights under UK GDPR.</p>
+          <p>We use your contact details only to respond to enquiries and deliver our service. We do not sell your data. For questions about your information, contact us using the details on this page.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="terms" class="legal-section section reveal" aria-labelledby="terms-heading">
+      <div class="container">
+        <h2 id="terms-heading" class="section-title">Terms of service</h2>
+        <div class="legal-content">
+          <p>These terms govern use of this website and our application support services. Replace this placeholder with your full terms, including fees, cancellations, and limitations of liability, reviewed by a qualified adviser.</p>
+          <p>Nothing on this site constitutes legal or financial advice. Benefit outcomes depend on individual circumstances and official decisions.</p>
         </div>
       </div>
     </section>
@@ -523,9 +567,9 @@
     <div class="container">
       <p class="footer-copy">&copy; Attendance Allowance for You. All rights reserved.</p>
       <p class="footer-links">
-        <a href="#">Privacy Policy</a>
+        <a href="#privacy">Privacy policy</a>
         <span aria-hidden="true"> · </span>
-        <a href="#">Terms of Service</a>
+        <a href="#terms">Terms of service</a>
       </p>
     </div>
   </footer>
