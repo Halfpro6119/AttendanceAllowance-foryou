@@ -282,12 +282,25 @@ body {
   text-decoration: none;
 }
 
-.logo-img {
-  height: 2.5rem;
-  width: auto;
-  max-width: min(11rem, 42vw);
-  object-fit: contain;
+.logo-img-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  padding: 0.4rem 0.6rem;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    0 2px 14px rgba(30, 74, 46, 0.22),
+    0 0 0 1px rgba(92, 184, 122, 0.5);
+}
+
+.logo-img {
+  height: 2.85rem;
+  width: auto;
+  max-width: min(11.5rem, 40vw);
+  object-fit: contain;
+  display: block;
 }
 
 .logo:hover {
@@ -1869,9 +1882,13 @@ section {
     font-size: 1.1rem;
   }
 
+  .logo-img-wrap {
+    padding: 0.3rem 0.45rem;
+  }
+
   .logo-img {
-    height: 2rem;
-    max-width: min(9rem, 38vw);
+    height: 2.35rem;
+    max-width: min(9.5rem, 36vw);
   }
 
   .trust-banner {
