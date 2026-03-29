@@ -287,18 +287,18 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 0.4rem 0.6rem;
+  padding: 0.08rem 0.18rem;
   background: var(--white);
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
   box-shadow:
     0 2px 14px rgba(30, 74, 46, 0.22),
     0 0 0 1px rgba(92, 184, 122, 0.5);
 }
 
 .logo-img {
-  height: 2.85rem;
+  height: 4.25rem;
   width: auto;
-  max-width: min(11.5rem, 40vw);
+  max-width: min(17rem, 54vw);
   object-fit: contain;
   display: block;
 }
@@ -1883,12 +1883,12 @@ section {
   }
 
   .logo-img-wrap {
-    padding: 0.3rem 0.45rem;
+    padding: 0.06rem 0.14rem;
   }
 
   .logo-img {
-    height: 2.35rem;
-    max-width: min(9.5rem, 36vw);
+    height: 3.6rem;
+    max-width: min(14.5rem, 50vw);
   }
 
   .trust-banner {
