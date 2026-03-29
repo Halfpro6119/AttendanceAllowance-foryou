@@ -38,6 +38,17 @@ html {
   html {
     scroll-behavior: auto;
   }
+
+  .logo-img-wrap {
+    transition: none;
+  }
+
+  .logo:hover .logo-img-wrap {
+    transform: none;
+    box-shadow:
+      0 2px 14px rgba(30, 74, 46, 0.22),
+      0 0 0 1px rgba(92, 184, 122, 0.5);
+  }
 }
 
 body {
@@ -290,9 +301,22 @@ body {
   padding: 0.08rem 0.18rem;
   background: var(--white);
   border-radius: 10px;
+  transform-origin: center center;
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1),
+    box-shadow 0.28s ease;
   box-shadow:
     0 2px 14px rgba(30, 74, 46, 0.22),
     0 0 0 1px rgba(92, 184, 122, 0.5);
+}
+
+.logo:hover .logo-img-wrap {
+  transform: scale(1.06) rotate(-3.5deg);
+  box-shadow:
+    0 4px 20px rgba(30, 74, 46, 0.2),
+    0 0 0 1px rgba(92, 184, 122, 0.6),
+    0 0 22px rgba(125, 212, 154, 0.65),
+    0 0 42px rgba(92, 184, 122, 0.35);
 }
 
 .logo-img {
