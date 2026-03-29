@@ -270,6 +270,9 @@ body {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
   font-size: 1.25rem;
   font-weight: 800;
   font-family: var(--font-display);
@@ -277,6 +280,14 @@ body {
   margin: 0;
   letter-spacing: -0.02em;
   text-decoration: none;
+}
+
+.logo-img {
+  height: 2.5rem;
+  width: auto;
+  max-width: min(11rem, 42vw);
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -1856,6 +1867,11 @@ section {
 
   .logo {
     font-size: 1.1rem;
+  }
+
+  .logo-img {
+    height: 2rem;
+    max-width: min(9rem, 38vw);
   }
 
   .trust-banner {
