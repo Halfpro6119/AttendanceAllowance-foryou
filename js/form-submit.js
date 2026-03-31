@@ -1,8 +1,7 @@
 /**
  * Application form submission to Supabase via PostgREST (native fetch).
- * No supabase-js CDN — avoids blocked CDNs and large dependency chains.
- *
- * Requires window.SUPABASE_URL and window.SUPABASE_ANON_KEY (see config-loader.js).
+ * After a successful insert, notifies /api/notify-submission (same origin) so email can be sent
+ * without Supabase Database Webhooks — requires window.INTERNAL_NOTIFY_KEY from config.
  */
 
 function normalizeBaseUrl(url) {
@@ -18,9 +17,34 @@ function friendlyNetworkError(message) {
 }
 
 /**
+ * POST /api/notify-submission with { source: 'client', table, recordId } — fire-and-forget.
+ */
+function notifySubmissionAfterInsert(table, recordId) {
+  const key = window.INTERNAL_NOTIFY_KEY || '';
+  if (!key || !recordId) return;
+
+  const body = JSON.stringify({
+    source: 'client',
+    table,
+    recordId: String(recordId)
+  });
+
+  fetch('/api/notify-submission', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${key}`
+    },
+    body
+  }).catch((err) => {
+    console.warn('notify-submission (client):', err);
+  });
+}
+
+/**
  * @param {string} table
  * @param {Record<string, unknown>[]} rows
- * @returns {Promise<{ success: boolean, error?: string }>}
+ * @returns {Promise<{ success: boolean, error?: string, recordId?: string }>}
  */
 async function insertRows(table, rows) {
   const supabaseUrl = window.SUPABASE_URL || '';
@@ -58,13 +82,25 @@ async function insertRows(table, rows) {
         'Content-Type': 'application/json',
         apikey: anonKey,
         Authorization: `Bearer ${anonKey}`,
-        Prefer: 'return=minimal'
+        Prefer: 'return=representation',
+        Accept: 'application/json'
       },
       body: JSON.stringify(rows)
     });
 
     if (res.ok) {
-      return { success: true };
+      let recordId;
+      try {
+        const data = await res.json();
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row && typeof row.id === 'string') recordId = row.id;
+      } catch {
+        /* ignore */
+      }
+      if (recordId) {
+        notifySubmissionAfterInsert(table, recordId);
+      }
+      return { success: true, recordId };
     }
 
     let errText = `Request failed (${res.status})`;

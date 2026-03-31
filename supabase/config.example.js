@@ -6,9 +6,13 @@
  *    (Supabase Dashboard > SQL Editor)
  * 3. Copy this file to config.js and add your project URL and anon key
  * 4. Add config.js to .gitignore (never commit secrets)
+ *
+ * internalNotifyKey: same value as NOTIFY_WEBHOOK_SECRET on Vercel (enables /api/notify-submission
+ * after form submit without Database Webhooks). Leave empty to skip client-side notify.
  */
 
 export const supabaseConfig = {
   url: 'https://YOUR_PROJECT_REF.supabase.co',
-  anonKey: 'YOUR_ANON_KEY'
+  anonKey: 'YOUR_ANON_KEY',
+  internalNotifyKey: ''
 };

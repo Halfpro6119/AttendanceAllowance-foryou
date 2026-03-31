@@ -1,32 +1,45 @@
 /**
- * Supabase Database Webhook → Gmail notification.
+ * Email notification after form submissions.
  *
- * Setup (Google Cloud Console — same project as your OAuth client):
- * 1. APIs & Services → Enable "Gmail API" (Drive alone does not send mail).
- * 2. OAuth consent screen → add scope: https://www.googleapis.com/auth/gmail.send
- * 3. Use your existing OAuth client ID + secret; run: npm run google-oauth
- *    Copy the refresh token into Vercel env GOOGLE_REFRESH_TOKEN.
+ * Two ways to trigger (use one; no Supabase Database Webhooks required):
+ *
+ * (A) Client callback (recommended without webhooks)
+ *     After a successful insert, the browser POSTs here with the new row id.
+ *     Set NOTIFY_WEBHOOK_SECRET in Vercel and the same value in supabase/config.js
+ *     as internalNotifyKey (see write-supabase-config.js on deploy).
+ *
+ * (B) Supabase Database Webhooks (beta) — same URL, Supabase-shaped JSON body.
+ *
+ * Google / Gmail: enable Gmail API, scope gmail.send, npm run google-oauth for refresh token.
  *
  * Vercel environment variables:
- *   GOOGLE_CLIENT_ID
- *   GOOGLE_CLIENT_SECRET
- *   GOOGLE_REFRESH_TOKEN
- *   GMAIL_FROM_EMAIL=rilrogsa@gmail.com   (must match the Google account that authorized)
- *   NOTIFY_TO_EMAIL=admin@attendanceallowance-foryou.co.uk
- *   NOTIFY_FALLBACK_TO_EMAIL=rilrogsa@gmail.com   (optional; default: you — only used for generic / unknown-table rows)
- *   NOTIFY_WEBHOOK_SECRET=long-random-string
- *   SUPABASE_URL=https://xxxx.supabase.co
- *   SUPABASE_SERVICE_ROLE_KEY=...   (Dashboard → Settings → API — server only, never expose to the browser)
- *
- * Supabase: Database → Webhooks → create one per table (INSERT only):
- *   URL: https://YOUR-DOMAIN.vercel.app/api/notify-submission
- *   HTTP header: Authorization: Bearer <NOTIFY_WEBHOOK_SECRET>
- *   Tables: application_submissions, callback_submissions
+ *   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
+ *   GMAIL_FROM_EMAIL, NOTIFY_TO_EMAIL, NOTIFY_FALLBACK_TO_EMAIL (optional)
+ *   NOTIFY_WEBHOOK_SECRET  (required — shared with client internalNotifyKey for path A)
+ *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 
 const { OAuth2Client } = require('google-auth-library');
 
 const TABLES_WITH_EMAIL_STATUS = ['application_submissions', 'callback_submissions'];
+
+async function fetchRowById(table, recordId) {
+  const base = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!base || !key) return null;
+
+  const url = `${base}/rest/v1/${encodeURIComponent(table)}?id=eq.${encodeURIComponent(recordId)}&select=*`;
+  const r = await fetch(url, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      Accept: 'application/json'
+    }
+  });
+  if (!r.ok) return null;
+  const rows = await r.json();
+  return Array.isArray(rows) && rows[0] ? rows[0] : null;
+}
 
 /**
  * Set email_sent = true on the row after a successful send (service role; bypasses RLS).
@@ -172,6 +185,25 @@ function buildEmailContent(payload) {
   };
 }
 
+async function runNotifyPipeline(payload) {
+  const table = payload.table;
+  const record = payload.record || {};
+  const recordId = record.id;
+
+  const content = buildEmailContent(payload);
+  const to =
+    content.to !== undefined && content.to !== null
+      ? content.to
+      : process.env.NOTIFY_TO_EMAIL || 'admin@attendanceallowance-foryou.co.uk';
+  await sendGmail({
+    to,
+    subject: content.subject,
+    body: content.body,
+    from: content.from
+  });
+  await markEmailSent(table, recordId);
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).setHeader('Allow', 'POST').send('Method Not Allowed');
@@ -197,27 +229,50 @@ module.exports = async (req, res) => {
     return;
   }
 
+  /** Path A: browser calls after insert (no Database Webhooks). */
+  if (payload.source === 'client' && payload.table && payload.recordId) {
+    const table = payload.table;
+    const recordId = String(payload.recordId);
+
+    if (!TABLES_WITH_EMAIL_STATUS.includes(table)) {
+      res.status(400).send('Unsupported table');
+      return;
+    }
+
+    try {
+      const record = await fetchRowById(table, recordId);
+      if (!record) {
+        res.status(404).json({ ok: false, error: 'Row not found' });
+        return;
+      }
+      if (record.email_sent === true) {
+        res.status(200).json({ ok: true, skipped: true, reason: 'already_sent' });
+        return;
+      }
+
+      const synthetic = {
+        type: 'INSERT',
+        table,
+        record
+      };
+      await runNotifyPipeline(synthetic);
+      res.status(200).json({ ok: true });
+    } catch (e) {
+      console.error('notify-submission (client):', e);
+      const msg = e instanceof Error ? e.message : 'send failed';
+      res.status(500).json({ ok: false, error: msg });
+    }
+    return;
+  }
+
+  /** Path B: Supabase Database Webhook payload. */
   if (payload.type !== 'INSERT' || !payload.record) {
     res.status(200).send('Ignored');
     return;
   }
 
-  const table = payload.table;
-  const recordId = payload.record.id;
-
   try {
-    const content = buildEmailContent(payload);
-    const to =
-      content.to !== undefined && content.to !== null
-        ? content.to
-        : process.env.NOTIFY_TO_EMAIL || 'admin@attendanceallowance-foryou.co.uk';
-    await sendGmail({
-      to,
-      subject: content.subject,
-      body: content.body,
-      from: content.from
-    });
-    await markEmailSent(table, recordId);
+    await runNotifyPipeline(payload);
     res.status(200).json({ ok: true });
   } catch (e) {
     console.error('notify-submission:', e);
