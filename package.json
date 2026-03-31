@@ -2,6 +2,10 @@
   "name": "attendance-allowance-foryou",
   "private": true,
   "scripts": {
-    "build": "node scripts/write-supabase-config.js"
+    "build": "node scripts/write-supabase-config.js",
+    "google-oauth": "node scripts/get-google-refresh-token.js"
+  },
+  "dependencies": {
+    "google-auth-library": "^9.14.2"
   }
 }
