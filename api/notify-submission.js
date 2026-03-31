@@ -15,6 +15,8 @@
  *   NOTIFY_TO_EMAIL=admin@attendanceallowance-foryou.co.uk
  *   NOTIFY_FALLBACK_TO_EMAIL=rilrogsa@gmail.com   (optional; default: you — only used for generic / unknown-table rows)
  *   NOTIFY_WEBHOOK_SECRET=long-random-string
+ *   SUPABASE_URL=https://xxxx.supabase.co
+ *   SUPABASE_SERVICE_ROLE_KEY=...   (Dashboard → Settings → API — server only, never expose to the browser)
  *
  * Supabase: Database → Webhooks → create one per table (INSERT only):
  *   URL: https://YOUR-DOMAIN.vercel.app/api/notify-submission
@@ -23,6 +25,40 @@
  */
 
 const { OAuth2Client } = require('google-auth-library');
+
+const TABLES_WITH_EMAIL_STATUS = ['application_submissions', 'callback_submissions'];
+
+/**
+ * Set email_sent = true on the row after a successful send (service role; bypasses RLS).
+ */
+async function markEmailSent(table, recordId) {
+  if (!TABLES_WITH_EMAIL_STATUS.includes(table) || !recordId) return;
+
+  const base = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!base || !key) {
+    console.warn(
+      'notify-submission: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing — skipping email_sent update'
+    );
+    return;
+  }
+
+  const url = `${base}/rest/v1/${encodeURIComponent(table)}?id=eq.${encodeURIComponent(recordId)}`;
+  const r = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify({ email_sent: true })
+  });
+
+  if (!r.ok) {
+    console.error('notify-submission: Supabase PATCH failed', r.status, await r.text());
+  }
+}
 
 function getBearer(req) {
   const h = req.headers.authorization || req.headers.Authorization;
@@ -166,6 +202,9 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const table = payload.table;
+  const recordId = payload.record.id;
+
   try {
     const content = buildEmailContent(payload);
     const to =
@@ -178,12 +217,14 @@ module.exports = async (req, res) => {
       body: content.body,
       from: content.from
     });
+    await markEmailSent(table, recordId);
     res.status(200).json({ ok: true });
   } catch (e) {
     console.error('notify-submission:', e);
+    const msg = e instanceof Error ? e.message : 'send failed';
     res.status(500).json({
       ok: false,
-      error: e instanceof Error ? e.message : 'send failed'
+      error: msg
     });
   }
 };
