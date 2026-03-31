@@ -16,6 +16,18 @@ function friendlyNetworkError(message) {
   return m;
 }
 
+/** Primary key for insert — avoids Prefer: return=representation (anon has INSERT but not SELECT on these tables). */
+function newRowId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 /**
  * POST /api/notify-submission with { source: 'client', table, recordId } — fire-and-forget.
  */
@@ -74,6 +86,8 @@ async function insertRows(table, rows) {
   }
 
   const endpoint = `${base}/rest/v1/${encodeURIComponent(table)}`;
+  const rowsWithIds = rows.map((r) => ({ ...r, id: newRowId() }));
+  const recordIdForNotify = rowsWithIds[0] && rowsWithIds[0].id;
 
   try {
     const res = await fetch(endpoint, {
@@ -82,25 +96,16 @@ async function insertRows(table, rows) {
         'Content-Type': 'application/json',
         apikey: anonKey,
         Authorization: `Bearer ${anonKey}`,
-        Prefer: 'return=representation',
-        Accept: 'application/json'
+        Prefer: 'return=minimal'
       },
-      body: JSON.stringify(rows)
+      body: JSON.stringify(rowsWithIds)
     });
 
     if (res.ok) {
-      let recordId;
-      try {
-        const data = await res.json();
-        const row = Array.isArray(data) ? data[0] : data;
-        if (row && typeof row.id === 'string') recordId = row.id;
-      } catch {
-        /* ignore */
+      if (recordIdForNotify) {
+        notifySubmissionAfterInsert(table, recordIdForNotify);
       }
-      if (recordId) {
-        notifySubmissionAfterInsert(table, recordId);
-      }
-      return { success: true, recordId };
+      return { success: true, recordId: recordIdForNotify };
     }
 
     let errText = `Request failed (${res.status})`;
