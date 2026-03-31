@@ -150,10 +150,33 @@ async function sendGmail({ to, subject, body, from }) {
   }
 }
 
+const EMAIL_OMIT_KEYS = new Set(['id', 'email_sent']);
+
+function formatCreatedAtForEmail(value) {
+  if (value === null || value === undefined) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    timeZone: 'Europe/London'
+  });
+}
+
 function formatRecordLines(record) {
   if (!record || typeof record !== 'object') return '(no data)';
   return Object.entries(record)
-    .map(([k, v]) => `${k}: ${v === null || v === undefined ? '' : String(v)}`)
+    .filter(([k]) => !EMAIL_OMIT_KEYS.has(k))
+    .map(([k, v]) => {
+      const display =
+        k === 'created_at'
+          ? formatCreatedAtForEmail(v)
+          : v === null || v === undefined
+            ? ''
+            : String(v);
+      return `${k}: ${display}`;
+    })
     .join('\n');
 }
 
