@@ -13,6 +13,7 @@
  *   GOOGLE_REFRESH_TOKEN
  *   GMAIL_FROM_EMAIL=rilrogsa@gmail.com   (must match the Google account that authorized)
  *   NOTIFY_TO_EMAIL=admin@attendanceallowance-foryou.co.uk
+ *   NOTIFY_FALLBACK_TO_EMAIL=rilrogsa@gmail.com   (optional; default: you — only used for generic / unknown-table rows)
  *   NOTIFY_WEBHOOK_SECRET=long-random-string
  *
  * Supabase: Database → Webhooks → create one per table (INSERT only):
@@ -67,11 +68,11 @@ function buildMime({ from, to, subject, body }) {
   return lines.join('\r\n');
 }
 
-async function sendGmail({ to, subject, body }) {
+async function sendGmail({ to, subject, body, from }) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-  const fromEmail = process.env.GMAIL_FROM_EMAIL || 'rilrogsa@gmail.com';
+  const fromEmail = from || process.env.GMAIL_FROM_EMAIL || 'rilrogsa@gmail.com';
 
   if (!clientId || !clientSecret || !refreshToken) {
     throw new Error('Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
@@ -113,21 +114,25 @@ function buildEmailContent(payload) {
 
   if (table === 'application_submissions') {
     return {
-      subject: `[AA for You] New application — ${record.full_name || 'unknown'}`,
+      subject: `AA for You New application — ${record.full_name || 'unknown'}`,
       body: `A new application was submitted.\n\n${formatRecordLines(record)}\n`
     };
   }
 
   if (table === 'callback_submissions') {
     return {
-      subject: `[AA for You] New call-back request — ${record.full_name || 'unknown'}`,
+      subject: `AA for You New call-back request — ${record.full_name || 'unknown'}`,
       body: `A new call-back request was submitted.\n\n${formatRecordLines(record)}\n`
     };
   }
 
+  const selfEmail = process.env.NOTIFY_FALLBACK_TO_EMAIL || 'rilrogsa@gmail.com';
+  const fromSelf = process.env.GMAIL_FROM_EMAIL || 'rilrogsa@gmail.com';
   return {
     subject: `[AA for You] New row in ${table}`,
-    body: `Event: ${payload.type}\n\n${formatRecordLines(record)}\n`
+    body: `Event: ${payload.type}\n\n${formatRecordLines(record)}\n`,
+    to: selfEmail,
+    from: fromSelf
   };
 }
 
@@ -142,7 +147,6 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const to = process.env.NOTIFY_TO_EMAIL || 'admin@attendanceallowance-foryou.co.uk';
   let payload = req.body;
   if (typeof payload === 'string') {
     try {
@@ -162,15 +166,18 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const allowed = ['application_submissions', 'callback_submissions'];
-  if (!allowed.includes(payload.table)) {
-    res.status(200).send('Ignored table');
-    return;
-  }
-
   try {
-    const { subject, body } = buildEmailContent(payload);
-    await sendGmail({ to, subject, body });
+    const content = buildEmailContent(payload);
+    const to =
+      content.to !== undefined && content.to !== null
+        ? content.to
+        : process.env.NOTIFY_TO_EMAIL || 'admin@attendanceallowance-foryou.co.uk';
+    await sendGmail({
+      to,
+      subject: content.subject,
+      body: content.body,
+      from: content.from
+    });
     res.status(200).json({ ok: true });
   } catch (e) {
     console.error('notify-submission:', e);
