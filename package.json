@@ -2,7 +2,7 @@
   "name": "attendance-allowance-foryou",
   "private": true,
   "scripts": {
-    "build": "node scripts/write-supabase-config.js",
+    "build": "node scripts/write-supabase-config.js && node scripts/notify-indexnow.js",
     "favicons": "python scripts/generate-favicons-from-logo.py",
     "google-oauth": "node scripts/get-google-refresh-token.js"
   },
