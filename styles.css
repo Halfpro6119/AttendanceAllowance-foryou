@@ -1631,17 +1631,28 @@ section {
   background: linear-gradient(180deg, #ffffff 0%, rgba(240, 249, 244, 0.5) 100%);
 }
 
-.price-badge {
+.price-badge-wrap {
   position: absolute;
   top: -10px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-2deg);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.price-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: rotate(-2deg);
   background: linear-gradient(180deg, var(--teal-light), var(--teal));
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
   font-family: var(--font-display);
-  padding: 0.3rem 0.85rem;
+  padding: 0.35rem 0.9rem;
   border-radius: var(--radius-full);
   box-shadow: 0 2px 8px rgba(45, 90, 61, 0.2);
 }
