@@ -1501,6 +1501,34 @@ section {
   }
 }
 
+.eligibility-preface {
+  text-align: center;
+  max-width: min(28rem, 100%);
+  margin: 0 auto 1.75rem;
+  padding: 0 0.5rem;
+}
+
+.eligibility-preface-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.eligibility-preface-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: var(--text-body);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
 /* Eligibility start */
 .eligibility-start {
   text-align: center;
@@ -1713,6 +1741,15 @@ section {
 }
 
 /* Pricing */
+.pricing-reassurance {
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 auto 0.75rem;
+  max-width: 36rem;
+  line-height: 1.55;
+}
+
 .pricing-note {
   text-align: center;
   color: var(--text-muted);
