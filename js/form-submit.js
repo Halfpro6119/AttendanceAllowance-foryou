@@ -30,6 +30,7 @@ function newRowId() {
 
 /**
  * POST /api/notify-submission with { source: 'client', table, recordId } — fire-and-forget.
+ * Retries once on 404 (rare race before row is readable). Logs non-OK responses for debugging.
  */
 function notifySubmissionAfterInsert(table, recordId) {
   const key = window.INTERNAL_NOTIFY_KEY || '';
@@ -41,16 +42,40 @@ function notifySubmissionAfterInsert(table, recordId) {
     recordId: String(recordId)
   });
 
-  fetch('/api/notify-submission', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`
-    },
-    body
-  }).catch((err) => {
-    console.warn('notify-submission (client):', err);
-  });
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${key}`
+  };
+
+  const post = () =>
+    fetch('/api/notify-submission', {
+      method: 'POST',
+      headers,
+      body,
+      credentials: 'same-origin'
+    });
+
+  const run = async () => {
+    try {
+      let res = await post();
+      if (res.status === 404) {
+        await new Promise((r) => setTimeout(r, 500));
+        res = await post();
+      }
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.warn(
+          'notify-submission:',
+          res.status,
+          text ? text.slice(0, 200) : '(no body)'
+        );
+      }
+    } catch (err) {
+      console.warn('notify-submission (client):', err);
+    }
+  };
+
+  void run();
 }
 
 /**

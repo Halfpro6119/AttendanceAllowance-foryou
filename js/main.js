@@ -1,12 +1,13 @@
 /**
  * Main JavaScript for Attendance Allowance for You
- * - Eligibility checker
+ * - Eligibility checker + lead form (4 steps)
  * - Application form submission to Supabase
- * - Callback form submission to Supabase
  * - Scroll reveal animations
  */
 
-import { submitApplicationForm, submitCallbackForm } from './form-submit.js';
+import { submitApplicationForm } from './form-submit.js';
+
+const TOTAL_STEPS = 4;
 
 // Scroll reveal
 const revealEls = document.querySelectorAll('.reveal');
@@ -25,9 +26,7 @@ revealEls.forEach((el) => revealObserver.observe(el));
 // Eligibility checker
 const questions = document.querySelectorAll('.eligibility-question');
 const questionsContainer = document.getElementById('eligibility-questions');
-const resultContainer = document.getElementById('eligibility-result');
-const resultSuccess = document.getElementById('eligibility-success');
-const resultFail = document.getElementById('eligibility-fail');
+const eligibilityComplete = document.getElementById('eligibility-complete');
 const restartBtn = document.getElementById('eligibility-restart');
 const eligibilityResultInput = document.getElementById('eligibilityResult');
 const eligibilityStart = document.getElementById('eligibility-start');
@@ -39,6 +38,15 @@ let eligibilityAnswers = [];
 const progressBar = document.getElementById('eligibility-progress');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
+
+function buildEligibilityResultSummary() {
+  const [who, spa, daily] = eligibilityAnswers;
+  return [
+    `applying_for=${who || ''}`,
+    `state_pension_age=${spa || ''}`,
+    `daily_activities=${daily || ''}`
+  ].join('|');
+}
 
 function updateEligibilityBackVisibility() {
   const inQuestions = questionsContainer && !questionsContainer.classList.contains('hidden');
@@ -63,31 +71,28 @@ function showQuestion(step) {
 
   if (progressBar && progressFill && progressText) {
     progressBar.classList.remove('hidden');
-    progressFill.style.width = `${(step / 5) * 100}%`;
-    progressText.textContent = `Question ${step} of 5`;
+    progressFill.style.width = `${(step / TOTAL_STEPS) * 100}%`;
+    progressText.textContent =
+      step === TOTAL_STEPS ? 'Your details' : `Question ${step} of ${TOTAL_STEPS}`;
   }
   updateEligibilityBackVisibility();
-}
 
-function showResult(eligible) {
-  questionsContainer.classList.add('hidden');
-  if (progressBar) progressBar.classList.add('hidden');
-  if (eligibilityStart) eligibilityStart.classList.add('hidden');
-  eligibilityBackBtn?.classList.add('hidden');
-  resultContainer.classList.remove('hidden');
-  if (eligible) {
-    resultSuccess.classList.remove('hidden');
-    resultFail.classList.add('hidden');
-    eligibilityResultInput.value = 'eligible';
-  } else {
-    resultSuccess.classList.add('hidden');
-    resultFail.classList.remove('hidden');
-    eligibilityResultInput.value = 'not_eligible';
+  if (step === TOTAL_STEPS) {
+    if (eligibilityResultInput) {
+      eligibilityResultInput.value = buildEligibilityResultSummary();
+    }
+    requestAnimationFrame(() => {
+      document.getElementById('fullName')?.focus();
+    });
   }
 }
 
 function goBack() {
   if (currentStep <= 1) return;
+  if (currentStep === TOTAL_STEPS) {
+    showQuestion(TOTAL_STEPS - 1);
+    return;
+  }
   eligibilityAnswers = eligibilityAnswers.slice(0, currentStep - 2);
   showQuestion(currentStep - 1);
 }
@@ -95,27 +100,34 @@ function goBack() {
 function restartChecker() {
   currentStep = 1;
   eligibilityAnswers = [];
-  eligibilityResultInput.value = '';
-  resultContainer.classList.add('hidden');
-  resultSuccess.classList.add('hidden');
-  resultFail.classList.add('hidden');
+  if (eligibilityResultInput) eligibilityResultInput.value = '';
+  eligibilityComplete?.classList.add('hidden');
   if (progressBar) progressBar.classList.add('hidden');
   eligibilityBackBtn?.classList.add('hidden');
   if (eligibilityStart) {
     eligibilityStart.classList.remove('hidden');
-    questionsContainer.classList.add('hidden');
+    questionsContainer?.classList.add('hidden');
   } else {
-    questionsContainer.classList.remove('hidden');
+    questionsContainer?.classList.remove('hidden');
     showQuestion(1);
   }
   questions.forEach((q) => {
     q.querySelectorAll('.option-btn').forEach((b) => b.classList.remove('selected'));
   });
+  const form = document.getElementById('application-form');
+  form?.reset();
+  const formMessage = document.getElementById('form-message');
+  if (formMessage) {
+    formMessage.classList.add('hidden');
+    formMessage.classList.remove('success', 'error');
+    formMessage.textContent = '';
+  }
 }
 
 function startChecker() {
   if (eligibilityStart) eligibilityStart.classList.add('hidden');
-  questionsContainer.classList.remove('hidden');
+  eligibilityComplete?.classList.add('hidden');
+  questionsContainer?.classList.remove('hidden');
   showQuestion(1);
 }
 
@@ -131,20 +143,9 @@ questions.forEach((questionEl) => {
       questionEl.querySelectorAll('.option-btn').forEach((b) => b.classList.remove('selected'));
       btn.classList.add('selected');
 
-      if (value === 'no' && (step === 1 || step === 2 || step === 3)) {
-        showResult(false);
-        return;
+      if (step < TOTAL_STEPS) {
+        showQuestion(step + 1);
       }
-      if (step === 4 && value === 'no') {
-        showResult(false);
-        return;
-      }
-      if (step === 5) {
-        showResult(value === 'yes');
-        return;
-      }
-
-      showQuestion(step + 1);
     });
   });
 });
@@ -209,32 +210,40 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-function focusFormMessage(el) {
+function focusEligibilityComplete() {
+  const el = document.getElementById('eligibility-complete');
   if (!el) return;
-  el.classList.remove('hidden');
   el.setAttribute('tabindex', '-1');
   el.focus({ preventScroll: false });
 }
 
-// Application form
+// Application form (embedded in eligibility step 4)
 const form = document.getElementById('application-form');
 const formMessage = document.getElementById('form-message');
 
 form?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  formMessage.classList.add('hidden');
-  formMessage.classList.remove('success', 'error');
+  if (!eligibilityResultInput) return;
 
-  const dateOfBirth = form.querySelector('[name="dateOfBirth"]').value;
+  formMessage?.classList.add('hidden');
+  formMessage?.classList.remove('success', 'error');
+
+  eligibilityResultInput.value = buildEligibilityResultSummary();
+
+  const dobEl = form.querySelector('[name="dateOfBirth"]');
+  const addressEl = form.querySelector('[name="address"]');
+  const careEl = form.querySelector('[name="careNeedsDescription"]');
+  const prefEl = form.querySelector('[name="preferredContactMethod"]');
+
   const formData = {
     fullName: form.querySelector('[name="fullName"]').value.trim(),
     email: form.querySelector('[name="email"]').value.trim(),
     phone: form.querySelector('[name="phone"]')?.value?.trim() || null,
-    address: form.querySelector('[name="address"]')?.value?.trim() || null,
-    dateOfBirth: dateOfBirth || null,
-    careNeedsDescription: form.querySelector('[name="careNeedsDescription"]')?.value?.trim() || null,
-    preferredContactMethod: form.querySelector('[name="preferredContactMethod"]')?.value || null,
-    eligibilityResult: form.querySelector('[name="eligibilityResult"]')?.value || null
+    address: addressEl ? addressEl.value.trim() || null : null,
+    dateOfBirth: dobEl ? dobEl.value || null : null,
+    careNeedsDescription: careEl ? careEl.value.trim() || null : null,
+    preferredContactMethod: prefEl ? prefEl.value || null : null,
+    eligibilityResult: eligibilityResultInput.value || null
   };
 
   const submitBtn = form.querySelector('.btn-submit');
@@ -244,55 +253,23 @@ form?.addEventListener('submit', async (e) => {
   const result = await submitApplicationForm(formData);
 
   submitBtn.disabled = false;
-  submitBtn.textContent = 'Submit Application';
+  submitBtn.textContent = 'Submit';
 
-  formMessage.classList.remove('hidden');
   if (result.success) {
-    formMessage.classList.add('success');
-    formMessage.textContent = 'Thank you! Your application has been received. We\'ll be in touch soon.';
+    questionsContainer?.classList.add('hidden');
+    progressBar?.classList.add('hidden');
+    eligibilityBackBtn?.classList.add('hidden');
+    eligibilityComplete?.classList.remove('hidden');
     form.reset();
     eligibilityResultInput.value = '';
-    focusFormMessage(formMessage);
-  } else {
-    formMessage.classList.add('error');
-    formMessage.textContent = result.error || 'Something went wrong. Please try again or contact us.';
-    focusFormMessage(formMessage);
+    eligibilityAnswers = [];
+    focusEligibilityComplete();
+    return;
   }
-});
 
-// Callback form
-const callbackForm = document.getElementById('callback-form');
-const callbackMessage = document.getElementById('callback-message');
-
-callbackForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  callbackMessage.classList.add('hidden');
-  callbackMessage.classList.remove('success', 'error');
-
-  const formData = {
-    fullName: callbackForm.querySelector('[name="callbackName"]').value.trim(),
-    email: callbackForm.querySelector('[name="callbackEmail"]').value.trim(),
-    phone: callbackForm.querySelector('[name="callbackPhone"]').value.trim()
-  };
-
-  const submitBtn = callbackForm.querySelector('.btn-submit');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
-
-  const result = await submitCallbackForm(formData);
-
-  submitBtn.disabled = false;
-  submitBtn.textContent = 'Request call-back';
-
-  callbackMessage.classList.remove('hidden');
-  if (result.success) {
-    callbackMessage.classList.add('success');
-    callbackMessage.textContent = 'Thank you! We\'ll call you back soon.';
-    callbackForm.reset();
-    focusFormMessage(callbackMessage);
-  } else {
-    callbackMessage.classList.add('error');
-    callbackMessage.textContent = result.error || 'Something went wrong. Please try again or call us.';
-    focusFormMessage(callbackMessage);
-  }
+  formMessage?.classList.remove('hidden');
+  formMessage?.classList.add('error');
+  formMessage.textContent = result.error || 'Something went wrong. Please try again or contact us.';
+  formMessage?.setAttribute('tabindex', '-1');
+  formMessage?.focus({ preventScroll: false });
 });

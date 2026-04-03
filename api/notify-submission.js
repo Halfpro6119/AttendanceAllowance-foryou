@@ -23,6 +23,63 @@ const { OAuth2Client } = require('google-auth-library');
 
 const TABLES_WITH_EMAIL_STATUS = ['application_submissions', 'callback_submissions'];
 
+let warnedMissingWebhookSecret = false;
+
+/**
+ * Vercel may expose JSON as an object, a string, a Buffer, or leave the stream unread.
+ */
+function parseJsonBodySync(req) {
+  const b = req.body;
+  if (b === undefined || b === null || b === '') {
+    return null;
+  }
+  if (typeof b === 'string') {
+    try {
+      return JSON.parse(b);
+    } catch {
+      return null;
+    }
+  }
+  if (Buffer.isBuffer(b)) {
+    try {
+      const raw = b.toString('utf8');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return null;
+    }
+  }
+  if (typeof b === 'object') {
+    return b;
+  }
+  return null;
+}
+
+function readRequestBodyStream(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+async function getJsonPayload(req) {
+  const sync = parseJsonBodySync(req);
+  if (sync !== null) {
+    return sync;
+  }
+  if (req.method !== 'POST') {
+    return {};
+  }
+  try {
+    const buf = await readRequestBodyStream(req);
+    const raw = buf.toString('utf8');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return null;
+  }
+}
+
 async function fetchRowById(table, recordId) {
   const base = (process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -82,7 +139,15 @@ function getBearer(req) {
 
 function verifyWebhook(req) {
   const secret = process.env.NOTIFY_WEBHOOK_SECRET;
-  if (!secret) return false;
+  if (!secret) {
+    if (!warnedMissingWebhookSecret) {
+      warnedMissingWebhookSecret = true;
+      console.error(
+        'notify-submission: NOTIFY_WEBHOOK_SECRET is not set — configure it in Vercel (same value as internalNotifyKey in supabase/config.js)'
+      );
+    }
+    return false;
+  }
   const bearer = getBearer(req);
   const headerSecret =
     req.headers['x-notify-secret'] ||
@@ -238,14 +303,10 @@ module.exports = async (req, res) => {
     return;
   }
 
-  let payload = req.body;
-  if (typeof payload === 'string') {
-    try {
-      payload = JSON.parse(payload || '{}');
-    } catch {
-      res.status(400).send('Invalid JSON body');
-      return;
-    }
+  let payload = await getJsonPayload(req);
+  if (payload === null) {
+    res.status(400).send('Invalid JSON body');
+    return;
   }
   if (!payload || typeof payload !== 'object') {
     res.status(400).send('Invalid body');
