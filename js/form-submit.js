@@ -160,26 +160,30 @@ async function insertRows(table, rows) {
 }
 
 export async function submitApplicationForm(formData) {
-  return insertRows('application_submissions', [
-    {
-      full_name: formData.fullName,
-      email: formData.email,
-      phone: formData.phone || null,
-      address: formData.address || null,
-      date_of_birth: formData.dateOfBirth || null,
-      care_needs_description: formData.careNeedsDescription || null,
-      preferred_contact_method: formData.preferredContactMethod || null,
-      eligibility_result: formData.eligibilityResult || null
-    }
-  ]);
+  const row = {
+    full_name: formData.fullName,
+    email: formData.email,
+    phone: formData.phone || null,
+    address: formData.address || null,
+    date_of_birth: formData.dateOfBirth || null,
+    care_needs_description: formData.careNeedsDescription || null,
+    preferred_contact_method: formData.preferredContactMethod || null,
+    eligibility_result: formData.eligibilityResult || null
+  };
+  if (formData.traffic_origin) {
+    row.traffic_origin = formData.traffic_origin;
+  }
+  return insertRows('application_submissions', [row]);
 }
 
 export async function submitCallbackForm(formData) {
-  return insertRows('callback_submissions', [
-    {
-      full_name: formData.fullName,
-      email: formData.email,
-      phone: formData.phone
-    }
-  ]);
+  const row = {
+    full_name: formData.fullName,
+    email: formData.email,
+    phone: formData.phone
+  };
+  if (formData.traffic_origin) {
+    row.traffic_origin = formData.traffic_origin;
+  }
+  return insertRows('callback_submissions', [row]);
 }

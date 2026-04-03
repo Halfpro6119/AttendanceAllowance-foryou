@@ -6,6 +6,9 @@
  */
 
 import { submitApplicationForm } from './form-submit.js';
+import { captureGoogleAdsTrafficOrigin, getTrafficOriginForSubmit } from './traffic-origin.js';
+
+captureGoogleAdsTrafficOrigin();
 
 const TOTAL_STEPS = 4;
 
@@ -235,6 +238,7 @@ form?.addEventListener('submit', async (e) => {
   const careEl = form.querySelector('[name="careNeedsDescription"]');
   const prefEl = form.querySelector('[name="preferredContactMethod"]');
 
+  const trafficOrigin = getTrafficOriginForSubmit();
   const formData = {
     fullName: form.querySelector('[name="fullName"]').value.trim(),
     email: form.querySelector('[name="email"]').value.trim(),
@@ -243,7 +247,8 @@ form?.addEventListener('submit', async (e) => {
     dateOfBirth: dobEl ? dobEl.value || null : null,
     careNeedsDescription: careEl ? careEl.value.trim() || null : null,
     preferredContactMethod: prefEl ? prefEl.value || null : null,
-    eligibilityResult: eligibilityResultInput.value || null
+    eligibilityResult: eligibilityResultInput.value || null,
+    ...(trafficOrigin ? { traffic_origin: trafficOrigin } : {})
   };
 
   const submitBtn = form.querySelector('.btn-submit');
@@ -256,6 +261,9 @@ form?.addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Submit';
 
   if (result.success) {
+    if (typeof window.gtag_report_conversion === 'function') {
+      window.gtag_report_conversion();
+    }
     questionsContainer?.classList.add('hidden');
     progressBar?.classList.add('hidden');
     eligibilityBackBtn?.classList.add('hidden');

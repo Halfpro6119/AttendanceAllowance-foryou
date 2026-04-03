@@ -215,7 +215,7 @@ async function sendGmail({ to, subject, body, from }) {
   }
 }
 
-const EMAIL_OMIT_KEYS = new Set(['id', 'email_sent']);
+const EMAIL_OMIT_KEYS = new Set(['id', 'email_sent', 'traffic_origin']);
 
 function formatCreatedAtForEmail(value) {
   if (value === null || value === undefined) return '';
@@ -253,21 +253,26 @@ function formatRecordLines(record) {
     .join('\n');
 }
 
+function originGoogleAdsLine(record) {
+  return record && record.traffic_origin === 'google_ads' ? '\norigin: Google Ads' : '';
+}
+
 function buildEmailContent(payload) {
   const table = payload.table;
   const record = payload.record || {};
+  const originLine = originGoogleAdsLine(record);
 
   if (table === 'application_submissions') {
     return {
       subject: `AA for You New application — ${record.full_name || 'unknown'}`,
-      body: `A new application was submitted.\n\n${formatRecordLines(record)}\n`
+      body: `A new application was submitted.\n\n${formatRecordLines(record)}${originLine}\n`
     };
   }
 
   if (table === 'callback_submissions') {
     return {
       subject: `AA for You New call-back request — ${record.full_name || 'unknown'}`,
-      body: `A new call-back request was submitted.\n\n${formatRecordLines(record)}\n`
+      body: `A new call-back request was submitted.\n\n${formatRecordLines(record)}${originLine}\n`
     };
   }
 
