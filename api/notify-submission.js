@@ -229,6 +229,12 @@ function formatCreatedAtForEmail(value) {
   });
 }
 
+function isEmptyForEmail(v) {
+  if (v === null || v === undefined) return true;
+  if (typeof v === 'string') return v.trim() === '';
+  return false;
+}
+
 function formatRecordLines(record) {
   if (!record || typeof record !== 'object') return '(no data)';
   return Object.entries(record)
@@ -240,8 +246,10 @@ function formatRecordLines(record) {
           : v === null || v === undefined
             ? ''
             : String(v);
-      return `${k}: ${display}`;
+      return { k, display };
     })
+    .filter(({ display }) => !isEmptyForEmail(display))
+    .map(({ k, display }) => `${k}: ${display}`)
     .join('\n');
 }
 
