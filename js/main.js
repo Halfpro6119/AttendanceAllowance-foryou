@@ -6,9 +6,6 @@
  */
 
 import { submitApplicationForm } from './form-submit.js';
-import { captureGoogleAdsTrafficOrigin, getTrafficOriginForSubmit } from './traffic-origin.js';
-
-captureGoogleAdsTrafficOrigin();
 
 const TOTAL_STEPS = 4;
 
@@ -29,7 +26,7 @@ revealEls.forEach((el) => revealObserver.observe(el));
 // Eligibility checker
 const questions = document.querySelectorAll('.eligibility-question');
 const questionsContainer = document.getElementById('eligibility-questions');
-const eligibilityComplete = document.getElementById('eligibility-complete');
+const eligibilityComplete = document.getElementById('success');
 const restartBtn = document.getElementById('eligibility-restart');
 const eligibilityResultInput = document.getElementById('eligibilityResult');
 const eligibilityStart = document.getElementById('eligibility-start');
@@ -125,6 +122,10 @@ function restartChecker() {
     formMessage.classList.remove('success', 'error');
     formMessage.textContent = '';
   }
+  if (window.location.hash === '#success') {
+    const path = window.location.pathname + window.location.search;
+    history.replaceState(null, '', path);
+  }
 }
 
 function startChecker() {
@@ -214,7 +215,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 function focusEligibilityComplete() {
-  const el = document.getElementById('eligibility-complete');
+  const el = document.getElementById('success');
   if (!el) return;
   el.setAttribute('tabindex', '-1');
   el.focus({ preventScroll: false });
@@ -238,7 +239,6 @@ form?.addEventListener('submit', async (e) => {
   const careEl = form.querySelector('[name="careNeedsDescription"]');
   const prefEl = form.querySelector('[name="preferredContactMethod"]');
 
-  const trafficOrigin = getTrafficOriginForSubmit();
   const formData = {
     fullName: form.querySelector('[name="fullName"]').value.trim(),
     email: form.querySelector('[name="email"]').value.trim(),
@@ -247,8 +247,7 @@ form?.addEventListener('submit', async (e) => {
     dateOfBirth: dobEl ? dobEl.value || null : null,
     careNeedsDescription: careEl ? careEl.value.trim() || null : null,
     preferredContactMethod: prefEl ? prefEl.value || null : null,
-    eligibilityResult: eligibilityResultInput.value || null,
-    ...(trafficOrigin ? { traffic_origin: trafficOrigin } : {})
+    eligibilityResult: eligibilityResultInput.value || null
   };
 
   const submitBtn = form.querySelector('.btn-submit');
@@ -261,9 +260,6 @@ form?.addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Submit';
 
   if (result.success) {
-    if (typeof window.gtag_report_conversion === 'function') {
-      window.gtag_report_conversion();
-    }
     questionsContainer?.classList.add('hidden');
     progressBar?.classList.add('hidden');
     eligibilityBackBtn?.classList.add('hidden');
@@ -271,6 +267,8 @@ form?.addEventListener('submit', async (e) => {
     form.reset();
     eligibilityResultInput.value = '';
     eligibilityAnswers = [];
+    const path = window.location.pathname + window.location.search;
+    history.replaceState(null, '', `${path}#success`);
     focusEligibilityComplete();
     return;
   }

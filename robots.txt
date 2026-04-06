@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://attendanceallowance-foryou.co.uk/sitemap.xml
+Sitemap: https://www.attendanceallowance-foryou.co.uk/sitemap.xml

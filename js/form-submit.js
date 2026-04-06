@@ -170,9 +170,6 @@ export async function submitApplicationForm(formData) {
     preferred_contact_method: formData.preferredContactMethod || null,
     eligibility_result: formData.eligibilityResult || null
   };
-  if (formData.traffic_origin) {
-    row.traffic_origin = formData.traffic_origin;
-  }
   return insertRows('application_submissions', [row]);
 }
 
@@ -182,8 +179,5 @@ export async function submitCallbackForm(formData) {
     email: formData.email,
     phone: formData.phone
   };
-  if (formData.traffic_origin) {
-    row.traffic_origin = formData.traffic_origin;
-  }
   return insertRows('callback_submissions', [row]);
 }

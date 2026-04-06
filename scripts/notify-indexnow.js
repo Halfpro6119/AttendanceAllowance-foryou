@@ -10,7 +10,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const KEY_FILE = '70a36a9befda423d8c249055de5227c7.txt';
-const HOST = 'attendanceallowance-foryou.co.uk';
+const HOST = 'www.attendanceallowance-foryou.co.uk';
 const INDEXNOW_URL = 'https://api.indexnow.org/IndexNow';
 
 function readKey() {
