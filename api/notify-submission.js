@@ -11,17 +11,15 @@
  *
  * (B) Supabase Database Webhooks (beta) — same URL, Supabase-shaped JSON body.
  *
- * Google / Gmail: enable Gmail API, scope gmail.send, npm run google-oauth for refresh token.
- *
  * Vercel environment variables:
- *   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
- *   GMAIL_FROM_EMAIL, NOTIFY_TO_EMAIL, NOTIFY_FALLBACK_TO_EMAIL (optional)
+ *   RESEND_API_KEY
+ *   RESEND_FROM_EMAIL, NOTIFY_TO_EMAIL, NOTIFY_FALLBACK_TO_EMAIL (optional)
  *   NOTIFY_WEBHOOK_SECRET or INTERNAL_NOTIFY_KEY
  *     (required — shared with client internalNotifyKey for path A)
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 
-const { OAuth2Client } = require('google-auth-library');
+const { Resend } = require('resend');
 
 const TABLES_WITH_EMAIL_STATUS = ['application_submissions', 'callback_submissions'];
 
@@ -158,62 +156,23 @@ function verifyWebhook(req) {
   return bearer === secret || headerSecret === secret;
 }
 
-function toBase64Url(str) {
-  return Buffer.from(str, 'utf8')
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
-function encodeSubject(s) {
-  if (!/[^\x00-\x7F]/.test(s)) return s;
-  return `=?UTF-8?B?${Buffer.from(s, 'utf8').toString('base64')}?=`;
-}
-
-function buildMime({ from, to, subject, body }) {
-  const lines = [
-    `From: ${from}`,
-    `To: ${to}`,
-    `Subject: ${encodeSubject(subject)}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=UTF-8',
-    '',
-    body
-  ];
-  return lines.join('\r\n');
-}
-
-async function sendGmail({ to, subject, body, from }) {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-  const fromEmail = from || process.env.GMAIL_FROM_EMAIL || 'rilrogsa@gmail.com';
-
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error('Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
+async function sendResend({ to, subject, body, from }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = from || process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  if (!apiKey) {
+    throw new Error('Missing RESEND_API_KEY');
   }
 
-  const oauth2 = new OAuth2Client(clientId, clientSecret);
-  oauth2.setCredentials({ refresh_token: refreshToken });
-
-  const { token } = await oauth2.getAccessToken();
-  if (!token) throw new Error('Could not obtain Google access token');
-
-  const raw = toBase64Url(buildMime({ from: fromEmail, to, subject, body }));
-
-  const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ raw })
+  const resend = new Resend(apiKey);
+  const { error } = await resend.emails.send({
+    from: fromEmail,
+    to,
+    subject,
+    html: `<p>${String(body).replace(/\n/g, '<br/>')}</p>`
   });
 
-  if (!r.ok) {
-    const t = await r.text();
-    throw new Error(`Gmail API ${r.status}: ${t.slice(0, 500)}`);
+  if (error) {
+    throw new Error(`Resend API error: ${error.message}`);
   }
 }
 
@@ -274,7 +233,7 @@ function buildEmailContent(payload) {
   }
 
   const selfEmail = process.env.NOTIFY_FALLBACK_TO_EMAIL || 'rilrogsa@gmail.com';
-  const fromSelf = process.env.GMAIL_FROM_EMAIL || 'rilrogsa@gmail.com';
+  const fromSelf = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
   return {
     subject: `[AA for You] New row in ${table}`,
     body: `Event: ${payload.type}\n\n${formatRecordLines(record)}\n`,
@@ -293,7 +252,7 @@ async function runNotifyPipeline(payload) {
     content.to !== undefined && content.to !== null
       ? content.to
       : process.env.NOTIFY_TO_EMAIL || 'admin@attendanceallowance-foryou.co.uk';
-  await sendGmail({
+  await sendResend({
     to,
     subject: content.subject,
     body: content.body,
