@@ -5,7 +5,8 @@
  *
  * (A) Client callback (recommended without webhooks)
  *     After a successful insert, the browser POSTs here with the new row id.
- *     Set NOTIFY_WEBHOOK_SECRET in Vercel and the same value in supabase/config.js
+ *     Set NOTIFY_WEBHOOK_SECRET in Vercel (or INTERNAL_NOTIFY_KEY as alias) and
+ *     the same value in supabase/config.js
  *     as internalNotifyKey (see write-supabase-config.js on deploy).
  *
  * (B) Supabase Database Webhooks (beta) — same URL, Supabase-shaped JSON body.
@@ -15,7 +16,8 @@
  * Vercel environment variables:
  *   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
  *   GMAIL_FROM_EMAIL, NOTIFY_TO_EMAIL, NOTIFY_FALLBACK_TO_EMAIL (optional)
- *   NOTIFY_WEBHOOK_SECRET  (required — shared with client internalNotifyKey for path A)
+ *   NOTIFY_WEBHOOK_SECRET or INTERNAL_NOTIFY_KEY
+ *     (required — shared with client internalNotifyKey for path A)
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 
@@ -138,12 +140,12 @@ function getBearer(req) {
 }
 
 function verifyWebhook(req) {
-  const secret = process.env.NOTIFY_WEBHOOK_SECRET;
+  const secret = process.env.NOTIFY_WEBHOOK_SECRET || process.env.INTERNAL_NOTIFY_KEY;
   if (!secret) {
     if (!warnedMissingWebhookSecret) {
       warnedMissingWebhookSecret = true;
       console.error(
-        'notify-submission: NOTIFY_WEBHOOK_SECRET is not set — configure it in Vercel (same value as internalNotifyKey in supabase/config.js)'
+        'notify-submission: NOTIFY_WEBHOOK_SECRET/INTERNAL_NOTIFY_KEY is not set — configure one in Vercel (same value as internalNotifyKey in supabase/config.js)'
       );
     }
     return false;

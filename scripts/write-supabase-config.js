@@ -5,7 +5,8 @@
  * Set in Vercel: Project Settings → Environment Variables
  *   SUPABASE_URL=https://xxxx.supabase.co
  *   SUPABASE_ANON_KEY=eyJ...
- *   NOTIFY_WEBHOOK_SECRET=...   (same string used by api/notify-submission — also embedded as internalNotifyKey for client notify)
+ *   NOTIFY_WEBHOOK_SECRET=...   (preferred; same string used by api/notify-submission)
+ *   INTERNAL_NOTIFY_KEY=...     (legacy alias, also supported)
  *
  * Local: does not overwrite an existing config.js unless env vars are set (so npm run build is safe).
  */
@@ -18,7 +19,11 @@ const exampleFile = path.join(root, 'supabase', 'config.example.js');
 
 const url = (process.env.SUPABASE_URL || '').trim();
 const key = (process.env.SUPABASE_ANON_KEY || '').trim();
-const notifySecret = (process.env.NOTIFY_WEBHOOK_SECRET || '').trim();
+const notifySecret = (
+  process.env.NOTIFY_WEBHOOK_SECRET ||
+  process.env.INTERNAL_NOTIFY_KEY ||
+  ''
+).trim();
 const isCi = Boolean(process.env.VERCEL || process.env.CI);
 
 if (url && key) {
@@ -30,7 +35,7 @@ if (url && key) {
 `;
   fs.writeFileSync(outFile, body, 'utf8');
   process.stdout.write(
-    'Wrote supabase/config.js from SUPABASE_URL / SUPABASE_ANON_KEY / NOTIFY_WEBHOOK_SECRET\n'
+    'Wrote supabase/config.js from SUPABASE_URL / SUPABASE_ANON_KEY / notify secret env\n'
   );
 } else if (isCi) {
   fs.copyFileSync(exampleFile, outFile);
