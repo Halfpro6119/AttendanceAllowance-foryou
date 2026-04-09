@@ -262,10 +262,22 @@ function buildEmailContent(payload) {
   };
 }
 
+function shouldSendEmailForRecord(table, record) {
+  if (table !== 'application_submissions') return true;
+
+  const eligibility = String(record?.eligibility_result || '').toLowerCase();
+  // If any eligibility answer is "no", do not send notification email.
+  return !eligibility.includes('=no');
+}
+
 async function runNotifyPipeline(payload) {
   const table = payload.table;
   const record = payload.record || {};
   const recordId = record.id;
+
+  if (!shouldSendEmailForRecord(table, record)) {
+    return { skipped: true, reason: 'ineligible_no_answer' };
+  }
 
   const content = buildEmailContent(payload);
   const to =
@@ -279,6 +291,7 @@ async function runNotifyPipeline(payload) {
     from: content.from
   });
   await markEmailSent(table, recordId);
+  return { skipped: false };
 }
 
 module.exports = async (req, res) => {
@@ -328,8 +341,8 @@ module.exports = async (req, res) => {
         table,
         record
       };
-      await runNotifyPipeline(synthetic);
-      res.status(200).json({ ok: true });
+      const result = await runNotifyPipeline(synthetic);
+      res.status(200).json({ ok: true, ...result });
     } catch (e) {
       console.error('notify-submission (client):', e);
       const msg = e instanceof Error ? e.message : 'send failed';
@@ -345,8 +358,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await runNotifyPipeline(payload);
-    res.status(200).json({ ok: true });
+    const result = await runNotifyPipeline(payload);
+    res.status(200).json({ ok: true, ...result });
   } catch (e) {
     console.error('notify-submission:', e);
     const msg = e instanceof Error ? e.message : 'send failed';
