@@ -7,7 +7,6 @@
     "google-oauth": "node scripts/get-google-refresh-token.js"
   },
   "dependencies": {
-    "google-auth-library": "^9.14.2",
-    "resend": "^6.10.0"
+    "google-auth-library": "^9.14.2"
   }
 }

@@ -12,14 +12,13 @@
  * (B) Supabase Database Webhooks (beta) — same URL, Supabase-shaped JSON body.
  *
  * Vercel environment variables:
- *   RESEND_API_KEY
- *   RESEND_FROM_EMAIL, NOTIFY_TO_EMAIL, NOTIFY_FALLBACK_TO_EMAIL (optional)
+ *   EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY
+ *   EMAILJS_PRIVATE_KEY (optional; recommended for server-side sending)
+ *   EMAIL_FROM, NOTIFY_TO_EMAIL, NOTIFY_FALLBACK_TO_EMAIL (optional)
  *   NOTIFY_WEBHOOK_SECRET or INTERNAL_NOTIFY_KEY
  *     (required — shared with client internalNotifyKey for path A)
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
-
-const { Resend } = require('resend');
 
 const TABLES_WITH_EMAIL_STATUS = ['application_submissions', 'callback_submissions'];
 
@@ -156,23 +155,44 @@ function verifyWebhook(req) {
   return bearer === secret || headerSecret === secret;
 }
 
-async function sendResend({ to, subject, body, from }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = from || process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-  if (!apiKey) {
-    throw new Error('Missing RESEND_API_KEY');
+async function sendEmailJs({ to, subject, body, from }) {
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_TEMPLATE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+  const fromEmail = from || process.env.EMAIL_FROM || 'admin@attendanceallowance-foryou.co.uk';
+
+  if (!serviceId || !templateId || !publicKey) {
+    throw new Error('Missing EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, or EMAILJS_PUBLIC_KEY');
   }
 
-  const resend = new Resend(apiKey);
-  const { error } = await resend.emails.send({
-    from: fromEmail,
-    to,
-    subject,
-    html: `<p>${String(body).replace(/\n/g, '<br/>')}</p>`
+  const payload = {
+    service_id: serviceId,
+    template_id: templateId,
+    user_id: publicKey,
+    template_params: {
+      to_email: to,
+      from_email: fromEmail,
+      subject,
+      message: body
+    }
+  };
+
+  if (privateKey) {
+    payload.accessToken = privateKey;
+  }
+
+  const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
   });
 
-  if (error) {
-    throw new Error(`Resend API error: ${error.message}`);
+  if (!r.ok) {
+    const text = await r.text().catch(() => '');
+    throw new Error(`EmailJS API ${r.status}: ${text.slice(0, 500)}`);
   }
 }
 
@@ -233,7 +253,7 @@ function buildEmailContent(payload) {
   }
 
   const selfEmail = process.env.NOTIFY_FALLBACK_TO_EMAIL || 'rilrogsa@gmail.com';
-  const fromSelf = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const fromSelf = process.env.EMAIL_FROM || 'admin@attendanceallowance-foryou.co.uk';
   return {
     subject: `[AA for You] New row in ${table}`,
     body: `Event: ${payload.type}\n\n${formatRecordLines(record)}\n`,
@@ -252,7 +272,7 @@ async function runNotifyPipeline(payload) {
     content.to !== undefined && content.to !== null
       ? content.to
       : process.env.NOTIFY_TO_EMAIL || 'admin@attendanceallowance-foryou.co.uk';
-  await sendResend({
+  await sendEmailJs({
     to,
     subject: content.subject,
     body: content.body,
