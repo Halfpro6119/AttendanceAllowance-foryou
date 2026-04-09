@@ -260,6 +260,9 @@ form?.addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Submit';
 
   if (result.success) {
+    if (typeof window.gtag_report_conversion === 'function') {
+      window.gtag_report_conversion();
+    }
     questionsContainer?.classList.add('hidden');
     progressBar?.classList.add('hidden');
     eligibilityBackBtn?.classList.add('hidden');

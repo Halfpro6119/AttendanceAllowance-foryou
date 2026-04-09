@@ -10,6 +10,23 @@
 
     gtag('config', 'AW-18068554688');
   </script>
+  <!-- Event snippet for Submit lead form (1) conversion page -->
+  <script>
+    function gtag_report_conversion(url) {
+      var callback = function () {
+        if (typeof(url) != 'undefined') {
+          window.location = url;
+        }
+      };
+      gtag('event', 'conversion', {
+        'send_to': 'AW-18068554688/tVxsCPyR6pgcEMCH4adD',
+        'value': 1.0,
+        'currency': 'GBP',
+        'event_callback': callback
+      });
+      return false;
+    }
+  </script>
   <meta charset="UTF-8">
   <script>document.documentElement.classList.add('js');</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
