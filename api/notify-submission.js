@@ -240,15 +240,15 @@ function buildEmailContent(payload) {
 
   if (table === 'application_submissions') {
     return {
-      subject: `AA for You New application — ${record.full_name || 'unknown'}`,
+      subject: `AA for You: new application (${record.full_name || 'unknown'})`,
       body: `A new application was submitted.\n\n${formatRecordLines(record)}\n`
     };
   }
 
   if (table === 'callback_submissions') {
     return {
-      subject: `AA for You New call-back request — ${record.full_name || 'unknown'}`,
-      body: `A new call-back request was submitted.\n\n${formatRecordLines(record)}\n`
+      subject: `AA for You: call back request (${record.full_name || 'unknown'})`,
+      body: `A new call back request was submitted.\n\n${formatRecordLines(record)}\n`
     };
   }
 
@@ -301,7 +301,7 @@ module.exports = async (req, res) => {
   }
 
   if (!verifyWebhook(req)) {
-    res.status(401).send('Unauthorized');
+    res.status(401).send('Unauthorised');
     return;
   }
 

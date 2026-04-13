@@ -4,7 +4,7 @@
  * without Supabase Database Webhooks — requires window.INTERNAL_NOTIFY_KEY from config.
  */
 
-function normalizeBaseUrl(url) {
+function normaliseBaseUrl(url) {
   return String(url).trim().replace(/\/+$/, '');
 }
 
@@ -93,7 +93,7 @@ async function insertRows(table, rows) {
 
   let base;
   try {
-    base = normalizeBaseUrl(supabaseUrl);
+    base = normaliseBaseUrl(supabaseUrl);
     const parsed = new URL(base);
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
       return { success: false, error: 'Invalid Supabase URL' };
@@ -106,7 +106,7 @@ async function insertRows(table, rows) {
     return {
       success: false,
       error:
-        'Supabase is not configured for this deployment. Add SUPABASE_URL and SUPABASE_ANON_KEY in your host’s environment variables and redeploy.'
+        "Supabase is not configured for this deployment. Add SUPABASE_URL and SUPABASE_ANON_KEY in your host's environment variables and redeploy."
     };
   }
 
