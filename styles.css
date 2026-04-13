@@ -869,6 +869,34 @@ section {
   min-height: 44px;
 }
 
+.hero-image-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(1.25rem, 6vw, 3.5rem);
+  margin-top: 2.25rem;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-image-row .hero-illustration.doodle-cluster {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  flex-shrink: 0;
+}
+
+.hero-image-row .doodle-cluster-hero-left,
+.hero-image-row .doodle-cluster-hero-right {
+  transform: rotate(-4deg);
+}
+
+.hero-image-row .doodle-cluster-hero-right {
+  transform: rotate(4deg);
+}
+
 .nowrap {
   white-space: nowrap;
 }
@@ -1634,6 +1662,37 @@ section {
   margin-bottom: 0.5rem;
 }
 
+.eligibility-lead-form .form-row-consent {
+  margin-bottom: 0.75rem;
+}
+
+.eligibility-lead-form .consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.eligibility-lead-form .consent-label input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+.eligibility-lead-form .consent-reassurance {
+  margin: 0.5rem 0 0 1.7rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
 .eligibility-lead-form .btn-submit {
   margin-top: 0.25rem;
 }
@@ -2070,6 +2129,20 @@ section {
 
 .about-source a:hover {
   text-decoration: underline;
+}
+
+.about-check-hint {
+  margin: 1.5rem 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--teal);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.about-content .about-check-hint + .btn {
+  margin-top: 0.35rem;
 }
 
 /* Legal sections & standalone legal pages — crisp type (avoids soft / “out of focus” look) */

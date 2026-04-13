@@ -257,7 +257,7 @@ form?.addEventListener('submit', async (e) => {
   const result = await submitApplicationForm(formData);
 
   submitBtn.disabled = false;
-  submitBtn.textContent = 'Submit';
+  submitBtn.textContent = 'Check Eligibility Now';
 
   if (result.success) {
     if (typeof window.gtag_report_conversion === 'function') {
