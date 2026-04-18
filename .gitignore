@@ -4,3 +4,4 @@ js/config.js
 
 # Dependencies
 node_modules/
+.env
