@@ -31,7 +31,7 @@
   <script>document.documentElement.classList.add('js');</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Check if you qualify for Attendance Allowance | Attendance Allowance for You</title>
-  <meta name="description" content="Free 60 second eligibility check for Attendance Allowance. Expert help, no upfront fees, and you only pay if you are successful. Up to £5,741 a year.">
+  <meta name="description" content="Free eligibility check for Attendance Allowance. Expert help, no upfront fees, and you only pay if you are successful. Up to £5,740 a year.">
   <meta name="theme-color" content="#5cb87a">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Check if you qualify for Attendance Allowance | Attendance Allowance for You">
@@ -87,6 +87,60 @@
       "name": "Attendance Allowance for You",
       "publisher": { "@id": "https://attendanceallowance-foryou.co.uk/#organization" },
       "inLanguage": "en-GB"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://attendanceallowance-foryou.co.uk/#faqpage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Attendance Allowance?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Attendance Allowance is a tax-free benefit for people who have reached State Pension age and need help because of illness or disability. It is not means-tested, so savings and income do not reduce the amount."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do income and savings affect Attendance Allowance?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Attendance Allowance is not means-tested. The amount you may receive is based on your care and supervision needs, not on your income or savings."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What can Attendance Allowance be spent on?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can use Attendance Allowance in any way that helps you—for example care, transport, equipment, or household costs. There is no requirement to spend it only on paid carers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will Attendance Allowance affect my State Pension?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Attendance Allowance is separate from your State Pension. It is tax-free and does not reduce your pension. Other benefits you receive can sometimes be affected, so it is worth checking your full circumstances."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does your pricing work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We work on a no win, no fee basis. There is no upfront charge for our help with your application. If your claim is not successful, you owe us nothing. If it succeeds, you pay a one-off fee, which is usually covered by your first payment and any backdating."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I contact Attendance Allowance for You?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can call us on +44 20 3916 6538 (Monday to Friday, 9am to 5pm) or email admin@attendanceallowance-foryou.co.uk. You can also use the free eligibility check on this website."
+          }
+        }
+      ]
     }
   ]
 }
@@ -139,6 +193,7 @@
         <a href="#about">What is AA?</a>
         <a href="#how-it-works">How it works</a>
         <a href="#pricing">Pricing</a>
+        <a href="#faqs">FAQs</a>
         <a href="#eligibility">Free check</a>
         <a href="#contact">Contact</a>
       </nav>
@@ -150,7 +205,7 @@
     <section id="hero" class="hero reveal">
       <div class="container">
         <h1 class="hero-title">Check if you qualify</h1>
-        <p class="hero-subtitle hero-subtitle-lead">In under 60 seconds, find out if you or a loved one could claim up to £5,741 per year. No stress. No upfront fees.</p>
+        <p class="hero-subtitle hero-subtitle-lead">In about a minute, find out if you or a loved one could claim up to £5,740 per year. No stress. No upfront fees.</p>
         <div class="hero-ctas">
           <a href="#eligibility" class="btn btn-primary btn-hero-primary">Start Free Eligibility Check</a>
         </div>
@@ -297,8 +352,8 @@
             <span class="stat-label">Our success rate vs 40% without help</span>
           </div>
           <div class="stat-card">
-            <span class="stat-number">£5,741</span>
-            <span class="stat-label">Maximum amount per year</span>
+            <span class="stat-number">£5,740</span>
+            <span class="stat-label">Higher rate per year (indicative)</span>
           </div>
         </div>
         <p class="stats-cta">No upfront charges. One time fee only if you are successful. Our fee is usually covered by your first payment, including any back payment.</p>
@@ -426,13 +481,13 @@
     <section id="eligibility" class="eligibility section section-alt reveal">
       <div class="container">
         <h2 class="section-title">Free eligibility check</h2>
-        <p class="section-intro">Three quick questions, then your contact details. Takes about a minute.</p>
+        <p class="section-intro">Answer a few questions, see an indicative amount, then send your details. Takes about a minute.</p>
         <div class="eligibility-preface" aria-label="About this check">
-          <h3 class="eligibility-preface-title">Takes less than 60 seconds</h3>
+          <h3 class="eligibility-preface-title">Guidance only</h3>
           <ul class="eligibility-preface-list">
-            <li>No complicated questions</li>
-            <li>No commitment required</li>
-            <li>Just a quick eligibility check</li>
+            <li>Based on common Attendance Allowance rules</li>
+            <li>No obligation to use our service</li>
+            <li>Official decisions are made by the DWP</li>
           </ul>
         </div>
         <div class="eligibility-checker">
@@ -441,36 +496,88 @@
           </div>
           <div id="eligibility-progress" class="eligibility-progress hidden">
             <div class="progress-bar"><span id="progress-fill" class="progress-fill"></span></div>
-            <span id="progress-text" class="progress-text">Question 1 of 4</span>
+            <span id="progress-text" class="progress-text"></span>
           </div>
           <button type="button" id="eligibility-back-btn" class="btn btn-outline btn-sm eligibility-back hidden">Back</button>
           <div id="eligibility-questions" class="eligibility-questions hidden">
-            <div class="eligibility-question" data-step="1">
+            <div id="calc-panel-applying" class="calc-panel eligibility-question hidden" data-panel="applying">
               <p>Who are you applying for?</p>
               <div class="options">
-                <button type="button" class="option-btn" data-value="myself">Myself</button>
-                <button type="button" class="option-btn" data-value="someone_else">Someone else</button>
+                <button type="button" class="option-btn" data-value="myself" data-next="spa">Myself</button>
+                <button type="button" class="option-btn" data-value="someone_else" data-next="spa">Someone else</button>
               </div>
             </div>
-            <div class="eligibility-question hidden" data-step="2">
-              <p>Are they over State Pension age?</p>
+            <div id="calc-panel-spa" class="calc-panel eligibility-question hidden" data-panel="spa">
+              <p>Have you reached State Pension age?</p>
+              <p class="calc-hint">Currently 66 or older.</p>
               <div class="options options-three">
-                <button type="button" class="option-btn" data-value="yes">Yes</button>
-                <button type="button" class="option-btn" data-value="no">No</button>
-                <button type="button" class="option-btn" data-value="not_sure">Not sure</button>
+                <button type="button" class="option-btn" data-value="yes" data-next="benefit">Yes, I&rsquo;m 66 or older</button>
+                <button type="button" class="option-btn" data-value="no" data-next="not_eligible:spa_no">No, I am under State Pension age</button>
+                <button type="button" class="option-btn" data-value="not_sure" data-next="not_eligible:spa_not_sure">Not sure</button>
               </div>
             </div>
-            <div class="eligibility-question hidden" data-step="3">
-              <p>Do they need help with daily activities?</p>
+            <div id="calc-panel-benefit" class="calc-panel eligibility-question hidden" data-panel="benefit">
+              <p>Do you receive PIP, DLA, Adult Disability Payment (ADP), or Pension Age Disability Payment (PADP)?</p>
+              <p class="calc-hint">You usually cannot claim Attendance Allowance if you already receive one of these.</p>
               <div class="options options-three">
-                <button type="button" class="option-btn" data-value="yes">Yes</button>
-                <button type="button" class="option-btn" data-value="no">No</button>
-                <button type="button" class="option-btn" data-value="not_sure">Not sure</button>
+                <button type="button" class="option-btn" data-value="yes" data-next="not_eligible:pip_yes">Yes</button>
+                <button type="button" class="option-btn" data-value="no" data-next="condition">No</button>
+                <button type="button" class="option-btn" data-value="not_sure" data-next="not_eligible:pip_not_sure">Not sure</button>
               </div>
             </div>
-            <div class="eligibility-question eligibility-step-contact hidden" data-step="4">
-              <p>Your details</p>
-              <p class="eligibility-contact-hint">We&rsquo;ll only use this to follow up on your check.</p>
+            <div id="calc-panel-condition" class="calc-panel eligibility-question hidden" data-panel="condition">
+              <p>Do you have a physical disability, mental disability, or health condition that affects you?</p>
+              <div class="options options-three">
+                <button type="button" class="option-btn" data-value="yes" data-next="abroad">Yes</button>
+                <button type="button" class="option-btn" data-value="no" data-next="not_eligible:condition_no">No</button>
+                <button type="button" class="option-btn" data-value="not_sure" data-next="abroad">Not sure</button>
+              </div>
+            </div>
+            <div id="calc-panel-abroad" class="calc-panel eligibility-question hidden" data-panel="abroad">
+              <p>In the last 3 years, have you been absent from Great Britain for more than 4 weeks <strong>at a time</strong>?</p>
+              <div class="calc-disclaimer" role="note">
+                <p>Long absences can affect whether you can be paid Attendance Allowance or how a new claim is treated. This question is only a rough screen.</p>
+              </div>
+              <div class="options options-three">
+                <button type="button" class="option-btn" data-value="yes" data-next="not_eligible:abroad_yes">Yes</button>
+                <button type="button" class="option-btn" data-value="no" data-next="duration">No</button>
+                <button type="button" class="option-btn" data-value="not_sure" data-next="duration">Not sure</button>
+              </div>
+            </div>
+            <div id="calc-panel-duration" class="calc-panel eligibility-question hidden" data-panel="duration">
+              <p>Have you needed this help for at least 6 months?</p>
+              <p class="calc-hint">Different rules may apply if you are terminally ill.</p>
+              <div class="options options-stack">
+                <button type="button" class="option-btn" data-value="six_plus" data-next="care_timing">Yes, for 6 months or longer</button>
+                <button type="button" class="option-btn" data-value="terminal" data-next="care_timing">I am terminally ill (special rules may apply)</button>
+                <button type="button" class="option-btn" data-value="under" data-next="not_eligible:duration_under">No, less than 6 months</button>
+              </div>
+            </div>
+            <div id="calc-panel-care_timing" class="calc-panel eligibility-question hidden" data-panel="care_timing">
+              <p>When do you need help or supervision with personal care?</p>
+              <p class="calc-hint">This determines which rate you <em>may</em> be eligible for.</p>
+              <div class="options options-stack">
+                <button type="button" class="option-btn" data-value="both" data-next="contact" data-rate="higher">Both during the day and at night</button>
+                <button type="button" class="option-btn" data-value="day_only" data-next="contact" data-rate="lower">During the day only</button>
+                <button type="button" class="option-btn" data-value="night_only" data-next="contact" data-rate="lower">At night only</button>
+              </div>
+            </div>
+            <div id="calc-panel-contact" class="calc-panel eligibility-step-contact hidden" data-panel="contact">
+              <div class="eligible-summary" aria-live="polite">
+                <h3 class="eligible-summary-title">You may be eligible</h3>
+                <p id="eligible-amount-line" class="eligible-amount-line"></p>
+                <p class="eligible-disclaimer">This check is for guidance only. It does not guarantee eligibility. Official decisions are made by the Department for Work and Pensions (DWP).</p>
+              </div>
+              <p class="eligibility-contact-hint">Complete your details below for us to support you with your claim.</p>
+              <div class="fee-callout" aria-label="How our fee works">
+                <h4 class="fee-callout-title">How our fee works</h4>
+                <ul class="fee-callout-list">
+                  <li><strong>No win, no fee:</strong> you owe us nothing if your claim is not successful.</li>
+                  <li><strong>One payment if you win:</strong> a single success fee (see <a href="#pricing">Pricing</a> for regions), usually covered by your first payment and any backdating.</li>
+                  <li><strong>No charge</strong> for this online check or for us calling you back about it.</li>
+                </ul>
+                <p class="fee-callout-foot">Full fee details, including VAT, are confirmed when we speak with you. Read our <a href="terms.html">terms of service</a>.</p>
+              </div>
               <form id="application-form" class="application-form eligibility-lead-form">
                 <div class="form-row">
                   <label for="fullName">Name *</label>
@@ -491,19 +598,35 @@
                     <span class="consent-label-text">I agree to be contacted about my eligibility and claim.</span>
                   </label>
                   <p class="consent-reassurance">We&rsquo;ll only contact you to help with your claim.</p>
+                  <p class="consent-fee-reassurance">Our service is no win, no fee: there is no upfront charge, and you only pay our one-off success fee if your claim succeeds.</p>
                 </div>
+                <p id="form-submit-hint" class="form-submit-hint hidden" aria-live="polite">There is no charge for submitting this form.</p>
                 <div id="form-message" class="form-message hidden" tabindex="-1" role="status" aria-live="polite"></div>
-                <button type="submit" class="btn btn-primary btn-submit">Check Eligibility Now</button>
+                <button type="submit" class="btn btn-primary btn-submit">Submit details</button>
               </form>
+            </div>
+            <div id="calc-panel-not-eligible" class="calc-panel calc-panel-not-eligible hidden" data-panel="not_eligible" tabindex="-1">
+              <div class="result-message result-fail">
+                <h3>You may not be eligible</h3>
+                <p id="ineligible-reason" class="ineligible-reason"></p>
+                <p class="ineligible-next-title">What you can do next:</p>
+                <ul class="ineligible-next-list">
+                  <li>Speak to your local <a href="https://www.citizensadvice.org.uk/" rel="noopener noreferrer">Citizens Advice</a> for guidance on other benefits.</li>
+                  <li>Call the Attendance Allowance helpline on <a href="tel:08007310122">0800 731 0122</a> for official advice.</li>
+                  <li>Your circumstances may change in the future, so you can try this check again later.</li>
+                </ul>
+              </div>
+              <button type="button" class="btn btn-outline calc-restart-btn">Start over</button>
             </div>
           </div>
           <div id="success" class="eligibility-complete hidden" tabindex="-1">
             <div class="result-message result-success">
               <span class="result-icon" aria-hidden="true">✓</span>
               <h3>Thank you!</h3>
-              <p>We&rsquo;ve received your details and we will call you to discuss eligibility.</p>
+              <p>We&rsquo;ve received your details and we will call you to discuss eligibility and next steps.</p>
+              <p class="success-fee-reminder"><strong>No win, no fee:</strong> you only pay our one-off success fee if your claim is successful. VAT and the exact amount for your region are confirmed on the call. See <a href="#pricing">Pricing</a> and <a href="terms.html">terms of service</a>.</p>
             </div>
-            <button type="button" id="eligibility-restart" class="btn btn-outline">Start again</button>
+            <button type="button" id="eligibility-restart" class="btn btn-outline calc-restart-btn">Start again</button>
           </div>
         </div>
       </div>
@@ -530,6 +653,53 @@
             <p class="price-desc">Pension Age Disability Payment (PADP)</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- FAQs -->
+    <section id="faqs" class="faqs section reveal" aria-labelledby="faqs-heading">
+      <div class="container">
+        <h2 id="faqs-heading" class="section-title">Frequently asked questions</h2>
+        <p class="faqs-intro">Quick answers about Attendance Allowance and how we help.</p>
+        <div class="faq-accordion" id="faq-accordion">
+          <div class="faq-item">
+            <button type="button" class="faq-trigger" id="faq-btn-1" aria-expanded="false" aria-controls="faq-panel-1">What is Attendance Allowance?</button>
+            <div class="faq-panel" id="faq-panel-1" role="region" aria-labelledby="faq-btn-1" hidden>
+              <p>Attendance Allowance is a tax-free benefit for people who have reached State Pension age and need help because of illness or disability. It is paid by the Department for Work and Pensions (DWP) in England, Wales, and Northern Ireland. In Scotland, a similar benefit is Pension Age Disability Payment (PADP).</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-trigger" id="faq-btn-2" aria-expanded="false" aria-controls="faq-panel-2">Do my income and savings matter?</button>
+            <div class="faq-panel" id="faq-panel-2" role="region" aria-labelledby="faq-btn-2" hidden>
+              <p>No. Attendance Allowance is not means-tested. Your income and savings do not reduce the amount you might receive. What matters is whether you meet the care and supervision rules set by the DWP.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-trigger" id="faq-btn-3" aria-expanded="false" aria-controls="faq-panel-3">Do I have to spend the money on carers?</button>
+            <div class="faq-panel" id="faq-panel-3" role="region" aria-labelledby="faq-btn-3" hidden>
+              <p>No. You can use Attendance Allowance in any way that helps you stay independent—for example heating, transport, equipment, or support. There is no requirement to spend it only on paid care.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-trigger" id="faq-btn-4" aria-expanded="false" aria-controls="faq-panel-4">Will this affect my State Pension?</button>
+            <div class="faq-panel" id="faq-panel-4" role="region" aria-labelledby="faq-btn-4" hidden>
+              <p>Attendance Allowance does not reduce your State Pension and is tax-free. Some other benefits can interact with Attendance Allowance, so it is worth checking your full circumstances with an adviser or with the DWP.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-trigger" id="faq-btn-5" aria-expanded="false" aria-controls="faq-panel-5">How does your pricing work?</button>
+            <div class="faq-panel" id="faq-panel-5" role="region" aria-labelledby="faq-btn-5" hidden>
+              <p>We work on a no win, no fee basis. There is no upfront charge for our help with your application. If your claim is unsuccessful, you owe us nothing. If it succeeds, you pay a one-off success fee (see our <a href="#pricing">Pricing</a> section for regional amounts). That fee is often covered by your first payment and any backdating.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-trigger" id="faq-btn-6" aria-expanded="false" aria-controls="faq-panel-6">How do I contact you?</button>
+            <div class="faq-panel" id="faq-panel-6" role="region" aria-labelledby="faq-btn-6" hidden>
+              <p>Call <a href="tel:+442039166538">+44 20 3916 6538</a> (Monday to Friday, 9am to 5pm) or email <a href="mailto:admin@attendanceallowance-foryou.co.uk">admin@attendanceallowance-foryou.co.uk</a>. You can also start with the free check above.</p>
+            </div>
+          </div>
+        </div>
+        <p class="faqs-cta"><a href="#eligibility" class="btn btn-secondary">Start free eligibility check</a></p>
       </div>
     </section>
 
@@ -582,6 +752,8 @@
     <div class="container">
       <p class="footer-copy">&copy; Attendance Allowance for You. All rights reserved.</p>
       <p class="footer-links">
+        <a href="#faqs">FAQs</a>
+        <span aria-hidden="true"> · </span>
         <a href="privacy-policy.html">Privacy policy</a>
         <span aria-hidden="true"> · </span>
         <a href="terms.html">Terms of service</a>

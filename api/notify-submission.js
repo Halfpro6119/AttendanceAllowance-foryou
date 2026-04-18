@@ -234,6 +234,194 @@ function formatRecordLines(record) {
     .join('\n');
 }
 
+/** @param {string} raw */
+function parseEligibilityPipe(raw) {
+  const out = {};
+  const s = String(raw || '').trim();
+  if (!s) return out;
+  for (const part of s.split('|')) {
+    const eq = part.indexOf('=');
+    if (eq <= 0) continue;
+    const key = part.slice(0, eq).trim();
+    const val = part.slice(eq + 1);
+    out[key] = val;
+  }
+  return out;
+}
+
+const ELIGIBILITY_LABELS = {
+  outcome: 'Outcome',
+  not_eligible_reason: 'Not eligible reason (code)',
+  applying_for: 'Applying for',
+  state_pension_age: 'State Pension age (66+)',
+  pip_dla: 'PIP / DLA / ADP / PADP',
+  condition: 'Health condition affects you',
+  abroad: 'Absent from GB over 4 weeks at a time (last 3 years)',
+  duration: 'How long help needed',
+  care_timing: 'When help is needed',
+  rate_band: 'Indicative rate',
+  estimate_annual: 'Indicative annual amount (£)'
+};
+
+const VALUE_LABELS = {
+  myself: 'Myself',
+  someone_else: 'Someone else',
+  yes: 'Yes',
+  no: 'No',
+  not_sure: 'Not sure',
+  six_plus: '6 months or longer',
+  terminal: 'Terminally ill (special rules may apply)',
+  under: 'Less than 6 months',
+  day_only: 'During the day only',
+  night_only: 'At night only',
+  both: 'During the day and at night',
+  lower: 'Lower rate',
+  higher: 'Higher rate',
+  eligible: 'Eligible (passed screen)',
+  not_eligible: 'Not eligible (stopped at screen)'
+};
+
+const NOT_ELIGIBLE_REASON_LABELS = {
+  spa_no: 'Under State Pension age',
+  spa_not_sure: 'Unsure about State Pension age',
+  pip_yes: 'Already receives PIP/DLA/ADP/PADP',
+  pip_not_sure: 'Unsure about PIP/DLA/ADP/PADP',
+  condition_no: 'No health condition indicated',
+  abroad_yes: 'Long absence from Great Britain',
+  duration_under: 'Help needed for under 6 months',
+  generic: 'Other'
+};
+
+function humanizeEligibilityValue(key, value) {
+  const v = String(value || '').trim();
+  if (!v) return '';
+  if (key === 'not_eligible_reason' && NOT_ELIGIBLE_REASON_LABELS[v]) {
+    return `${NOT_ELIGIBLE_REASON_LABELS[v]} (${v})`;
+  }
+  if (VALUE_LABELS[v]) return VALUE_LABELS[v];
+  if (key === 'estimate_annual' && /^\d+$/.test(v)) {
+    try {
+      return `£${Number(v).toLocaleString('en-GB')}`;
+    } catch {
+      return v;
+    }
+  }
+  return v.replace(/_/g, ' ');
+}
+
+/**
+ * Human-readable block for the pipe-separated eligibility_result from the calculator.
+ * @param {string | null | undefined} raw
+ */
+function formatEligibilityResultForEmail(raw) {
+  const parsed = parseEligibilityPipe(raw);
+  const keys = Object.keys(parsed);
+  if (keys.length === 0) return '';
+
+  const order = [
+    'outcome',
+    'not_eligible_reason',
+    'applying_for',
+    'state_pension_age',
+    'pip_dla',
+    'condition',
+    'abroad',
+    'duration',
+    'care_timing',
+    'rate_band',
+    'estimate_annual'
+  ];
+
+  const lines = [];
+  for (const key of order) {
+    if (!(key in parsed)) continue;
+    const val = parsed[key];
+    if (val === undefined || val === '') continue;
+    const label = ELIGIBILITY_LABELS[key] || key;
+    lines.push(`  ${label}: ${humanizeEligibilityValue(key, val)}`);
+  }
+  for (const key of keys) {
+    if (order.includes(key)) continue;
+    const val = parsed[key];
+    if (val === undefined || val === '') continue;
+    lines.push(`  ${key}: ${humanizeEligibilityValue(key, val)}`);
+  }
+  return lines.join('\n');
+}
+
+const APPLICATION_FIELD_LABELS = {
+  full_name: 'Name',
+  email: 'Email',
+  phone: 'Phone',
+  address: 'Address',
+  date_of_birth: 'Date of birth',
+  care_needs_description: 'Care needs (free text)',
+  preferred_contact_method: 'Preferred contact',
+  eligibility_result: 'Eligibility (raw)'
+};
+
+/**
+ * Email body for application_submissions: readable labels + expanded calculator answers.
+ * @param {Record<string, unknown>} record
+ */
+function formatApplicationSubmissionForEmail(record) {
+  const lines = ['A new application was submitted.', ''];
+
+  const orderedKeys = [
+    'full_name',
+    'email',
+    'phone',
+    'address',
+    'date_of_birth',
+    'care_needs_description',
+    'preferred_contact_method'
+  ];
+
+  for (const key of orderedKeys) {
+    if (EMAIL_OMIT_KEYS.has(key)) continue;
+    let v = record[key];
+    if (key === 'created_at') v = record.created_at;
+    if (isEmptyForEmail(v)) continue;
+    const display =
+      key === 'created_at' ? formatCreatedAtForEmail(v) : v === null || v === undefined ? '' : String(v);
+    if (isEmptyForEmail(display)) continue;
+    const label = APPLICATION_FIELD_LABELS[key] || key;
+    lines.push(`${label}: ${display}`);
+  }
+
+  const elRaw = record.eligibility_result;
+  const elBlock = formatEligibilityResultForEmail(
+    typeof elRaw === 'string' ? elRaw : elRaw != null ? String(elRaw) : ''
+  );
+  if (elBlock) {
+    lines.push('');
+    lines.push('Eligibility check (from website calculator):');
+    lines.push(elBlock);
+  } else if (!isEmptyForEmail(elRaw)) {
+    lines.push('');
+    lines.push(`${APPLICATION_FIELD_LABELS.eligibility_result}:`);
+    lines.push(`  ${String(elRaw)}`);
+  }
+
+  for (const [k, v] of Object.entries(record)) {
+    if (EMAIL_OMIT_KEYS.has(k)) continue;
+    if (orderedKeys.includes(k) || k === 'eligibility_result') continue;
+    if (isEmptyForEmail(v)) continue;
+    const display = k === 'created_at' ? formatCreatedAtForEmail(v) : String(v);
+    if (isEmptyForEmail(display)) continue;
+    lines.push(`${APPLICATION_FIELD_LABELS[k] || k}: ${display}`);
+  }
+
+  const created = record.created_at;
+  if (!isEmptyForEmail(created) && !lines.some((l) => l.startsWith('Submitted'))) {
+    lines.push('');
+    lines.push(`Submitted: ${formatCreatedAtForEmail(created)}`);
+  }
+
+  lines.push('');
+  return lines.join('\n');
+}
+
 function buildEmailContent(payload) {
   const table = payload.table;
   const record = payload.record || {};
@@ -241,7 +429,7 @@ function buildEmailContent(payload) {
   if (table === 'application_submissions') {
     return {
       subject: `AA for You: new application (${record.full_name || 'unknown'})`,
-      body: `A new application was submitted.\n\n${formatRecordLines(record)}\n`
+      body: formatApplicationSubmissionForEmail(record)
     };
   }
 
@@ -265,9 +453,21 @@ function buildEmailContent(payload) {
 function shouldSendEmailForRecord(table, record) {
   if (table !== 'application_submissions') return true;
 
-  const eligibility = String(record?.eligibility_result || '').toLowerCase();
-  // If any eligibility answer is "no", do not send notification email.
-  return !eligibility.includes('=no');
+  const raw = String(record?.eligibility_result || '');
+  const parsed = parseEligibilityPipe(raw);
+
+  // New calculator: only notify when the user completed the flow as eligible.
+  if ('outcome' in parsed) {
+    const o = String(parsed.outcome || '').toLowerCase();
+    if (o === 'not_eligible') return false;
+    if (o === 'eligible') return true;
+  }
+
+  // Legacy (three-question checker): skip obvious fails. Do not use broad "=no" — new strings use pip_dla=no etc.
+  if (/(?:^|\|)state_pension_age=no(?:\||$)/i.test(raw)) return false;
+  if (/(?:^|\|)daily_activities=no(?:\||$)/i.test(raw)) return false;
+
+  return true;
 }
 
 async function runNotifyPipeline(payload) {
